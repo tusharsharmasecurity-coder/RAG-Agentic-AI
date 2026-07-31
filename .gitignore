@@ -1,0 +1,27 @@
+# Virtual environment
+.venv/
+
+# Secrets
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Vector database
+faiss_store/
+data/vector_store/
+
+# Data files
+data/
+assets/
+upload/
+
+# IDE
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Package metadata
+*.egg-info/
