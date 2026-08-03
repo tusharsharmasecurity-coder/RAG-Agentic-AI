@@ -1,15 +1,20 @@
 import mysql.connector
+
+from src.config.settings import settings
+
 print(">>> Database loaded from:", __file__)
+
 
 class Database:
 
     def __init__(self):
 
         self.connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="YOUME@9299",
-            database="delhivery_ai"
+            host=settings.DB_HOST,
+            port=settings.DB_PORT,
+            user=settings.DB_USER,
+            password=settings.DB_PASSWORD,
+            database=settings.DB_NAME,
         )
 
         self.cursor = self.connection.cursor()
@@ -28,6 +33,7 @@ class Database:
         self.cursor.execute(query)
 
         return self.cursor.fetchall()
+
     def execute_one(self, query):
         self.cursor.execute(query)
         return self.cursor.fetchone()

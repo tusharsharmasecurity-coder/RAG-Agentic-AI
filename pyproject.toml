@@ -35,4 +35,5 @@ dependencies = [
     "transformers==4.56.2",
     "accelerate==1.10.1",
     "langchain-nvidia-ai-endpoints>=1.4.3",
+    "pydantic-settings>=2.14.2",
 ]
