@@ -7,4 +7,7 @@ sentence-transformers
 faiss-cpu
 chromadb
 langchain-groq
+networkx>=3.0
 python-dotenv
+rapidfuzz>=3.0.0
+sqlglot>=27.0.0

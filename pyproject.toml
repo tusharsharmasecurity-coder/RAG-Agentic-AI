@@ -35,5 +35,9 @@ dependencies = [
     "transformers==4.56.2",
     "accelerate==1.10.1",
     "langchain-nvidia-ai-endpoints>=1.4.3",
+    "networkx>=3.0",
     "pydantic-settings>=2.14.2",
+    "semantic-router>=0.1.16",
+    "rapidfuzz>=3.0.0",
+    "sqlglot>=27.0.0",
 ]

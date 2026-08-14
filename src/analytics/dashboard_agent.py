@@ -42,13 +42,7 @@ class DashboardAgent:
 
               },
 
-             "chart": {
-
-             "chart":"bar",
-
-              "reason":"Comparing categories"
-
-             }
+             "chart": chart
 
                }
 

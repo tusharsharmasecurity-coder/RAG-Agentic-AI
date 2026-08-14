@@ -10,82 +10,66 @@ class VectorMemory:
 
     def __init__(self):
 
-     self.embedding = EmbeddingManager()
+        self.embedding = EmbeddingManager()
 
-     self.dimension = 384
+        self.dimension = 384
 
-     self.memory_path = "data/memory"
+        self.memory_path = "data/memory"
 
-     os.makedirs(self.memory_path, exist_ok=True)
+        os.makedirs(self.memory_path, exist_ok=True)
 
-     self.index_file = os.path.join(
-        self.memory_path,
-        "memory.faiss"
-     )
+        self.index_file = os.path.join(self.memory_path, "memory.faiss")
 
-     self.question_file = os.path.join(
-        self.memory_path,
-        "questions.pkl"
-     )
+        self.question_file = os.path.join(self.memory_path, "questions.pkl")
 
-     self.load_memory()
+        self.load_memory()
+
     def load_memory(self):
 
-     if os.path.exists(self.index_file):
+        if os.path.exists(self.index_file):
 
-        self.index = faiss.read_index(
-            self.index_file
-        )
+            self.index = faiss.read_index(self.index_file)
 
-        with open(
-            self.question_file,
-            "rb"
-        ) as f:
+            with open(self.question_file, "rb") as f:
 
-            self.questions = pickle.load(f)
+                self.questions = pickle.load(f)
 
-        print(
-            f"[Memory] Loaded {len(self.questions)} questions."
-        )
+            print(f"[Memory] Loaded {len(self.questions)} questions.")
 
-     else:
+        else:
 
-        self.index = faiss.IndexFlatIP(
-            self.dimension
-        )
+            self.index = faiss.IndexFlatIP(self.dimension)
 
-        self.questions = []
+            self.questions = []
 
-        print("[Memory] New memory created.")
+            print("[Memory] New memory created.")
+
     def save_memory(self):
 
-     faiss.write_index(
-        self.index,
-        self.index_file
-     )
+        faiss.write_index(self.index, self.index_file)
 
-     with open(
-        self.question_file,
-        "wb"
-     ) as f:
+        with open(self.question_file, "wb") as f:
 
-        pickle.dump(
-            self.questions,
-            f
-        )    
+            pickle.dump(self.questions, f)
+
     # -------------------------
 
-    def add(self, question):
+    def add(self, question, sql=None, answer=None, log_id=None):
 
         question = normalize(question)
 
         vector = self.embedding.embed(question)
 
-        self.index.add(
-            np.array([vector]).astype("float32")
-        )
+        self.index.add(np.array([vector]).astype("float32"))
 
-        self.questions.append(question)
+        self.questions.append(
+            {
+                "question": question,
+                "sql": sql,
+                "answer": answer,
+                "log_id": log_id,
+            }
+        )
         self.save_memory()
 
     # -------------------------
@@ -95,20 +79,21 @@ class VectorMemory:
         question = normalize(question)
 
         if len(self.questions) == 0:
-            return None, 0
+            return None
 
         vector = self.embedding.embed(question)
 
-        scores, ids = self.index.search(
-            np.array([vector]).astype("float32"),
-            1
-        )
+        scores, ids = self.index.search(np.array([vector]).astype("float32"), 1)
 
         score = float(scores[0][0])
 
         idx = int(ids[0][0])
 
         if score < 0.80:
-            return None, score
+            return None
 
-        return self.questions[idx], score
+        item = self.questions[idx]
+
+        item["score"] = score
+
+        return item

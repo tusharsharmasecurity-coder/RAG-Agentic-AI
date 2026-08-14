@@ -2,31 +2,13 @@ import streamlit as st
 
 
 def show_quick_actions():
-
-    st.subheader("⚡ Quick Actions")
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    with c1:
-        st.button(
-            "📤 Upload Excel",
-            use_container_width=True
-        )
-
-    with c2:
-        st.button(
-            "🗄 SQL Analytics",
-            use_container_width=True
-        )
-
-    with c3:
-        st.button(
-            "📚 Knowledge Base",
-            use_container_width=True
-        )
-
-    with c4:
-        st.button(
-            "🕘 Upload History",
-            use_container_width=True
-        )
+    st.markdown("<div class='section-label'>Quick actions</div>", unsafe_allow_html=True)
+    actions = [
+        ("Upload data", ":material/upload_file:"),
+        ("Analyse shipments", ":material/query_stats:"),
+        ("Browse knowledge", ":material/menu_book:"),
+        ("View history", ":material/history:"),
+    ]
+    for col, (label, icon) in zip(st.columns(4), actions):
+        with col:
+            st.button(label, icon=icon, width="stretch")

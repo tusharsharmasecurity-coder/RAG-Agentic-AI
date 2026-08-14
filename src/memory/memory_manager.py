@@ -11,9 +11,21 @@ class MemoryManager:
     # -------------------------
     # Save SQL
     # -------------------------
-    def save_sql(self, question, sql, execution_time=0):
+    def save_sql(
+        self,
+        question,
+        sql,
+        answer=None,
+        log_id=None,
+        execution_time=0,
+    ):
 
-        self.vector.add(question)
+        self.vector.add(
+            question=question,
+            sql=sql,
+            answer=answer,
+            log_id=log_id,
+        )
 
         query = """
         INSERT INTO ai_memory
@@ -21,10 +33,7 @@ class MemoryManager:
         VALUES (%s, %s)
         """
 
-        self.db.cursor.execute(
-            query,
-            (question, sql)
-        )
+        self.db.cursor.execute(query, (question, sql))
 
         self.db.connection.commit()
 
@@ -33,26 +42,9 @@ class MemoryManager:
     # -------------------------
     def search(self, question):
 
-        similar, score = self.vector.search(question)
+        memory = self.vector.search(question)
 
-        if similar is None:
+        if memory is None:
             return None
 
-        query = """
-        SELECT sql_query
-        FROM ai_memory
-        WHERE question_pattern=%s
-        LIMIT 1
-        """
-
-        self.db.cursor.execute(
-            query,
-            (similar,)
-        )
-
-        row = self.db.cursor.fetchone()
-
-        if row:
-            return row[0]
-
-        return None
+        return memory  # ✅ Return the whole dictionary

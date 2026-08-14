@@ -32,6 +32,24 @@ cost               -> Value
 
 status             -> Validation
 closure            -> Closure
+=========================
+SQL PLANNING
+=========================
+
+Before generating SQL, internally determine:
+
+1. Which table(s) contain the answer?
+2. Which columns are required?
+3. Are JOINs required?
+4. Is aggregation required?
+5. Is GROUP BY required?
+6. Is ORDER BY required?
+7. Is COUNT or SUM appropriate?
+8. Can the question be answered using the provided schema?
+
+Do NOT output this reasoning.
+
+Output ONLY the final SQL.
 
 =========================
 STRICT SQL RULES
@@ -64,6 +82,20 @@ DROP
 ALTER
 TRUNCATE
 CREATE
+=========================
+QUERY OPTIMIZATION
+=========================
+
+Generate efficient SQL.
+
+Rules:
+
+- Never use SELECT * unless explicitly requested.
+- Select only required columns.
+- Avoid unnecessary JOINs.
+- Prefer COUNT(*) over fetching rows.
+- Use DISTINCT only when needed.
+- Use LIMIT when the user asks for examples or samples.
 
 =========================
 COUNT vs SUM RULES
@@ -195,7 +227,71 @@ SELECT
 Use UNION ALL ONLY when returning rows.
 
 Never use UNION ALL for aggregated totals.
+=========================
+UNKNOWN QUESTIONS
+=========================
 
+If the requested table or column is not present in the schema,
+
+Return exactly:
+
+I DO NOT KNOW
+
+Do not guess.
+Do not create fake SQL.
+=========================
+JOIN RULES
+=========================
+
+Only join tables when necessary.
+
+Use existing foreign key relationships.
+
+Never invent join conditions.
+
+Never join unrelated tables.
+=========================
+DATE RULES
+=========================
+
+When the user asks:
+
+Today
+
+Yesterday
+
+Last 7 days
+
+This month
+
+Last month
+
+Use SQL date functions.
+
+Use the date column present in the schema.
+
+Do not assume date column names.
+=========================
+ORDERING
+=========================
+
+If the user asks:
+
+Top
+
+Highest
+
+Lowest
+
+Best
+
+Worst
+
+Most
+
+Least
+
+Use ORDER BY with LIMIT.
 =========================
 COLUMN MAPPING
 =========================
@@ -215,6 +311,79 @@ Use AWB
 If user says date
 
 Use LSD
+ 
+IMPORTANT
+
+Return ONLY SQL.
+
+Do not explain.
+
+Do not use markdown.
+
+Do not write English.
+
+Output must begin with SELECT.
+=========================
+PREVIOUS SUCCESSFUL EXAMPLES
+=========================
+
+{examples}
+=========================
+PARSED QUESTION
+=========================
+
+Intent:
+{intent}
+
+Metrics:
+{metrics}
+
+Filters:
+{filters}
+
+Group By:
+{group_by}
+
+Time:
+{time}
+
+Sort:
+{sort}
+
+Limit:
+{limit}
+
+=========================
+QUESTION
+=========================
+
+{question}
+=========================
+NL2SQL PARSED QUESTION
+=========================
+
+Intent:
+{intent}
+
+Metrics:
+{metrics}
+
+Filters:
+{filters}
+
+Group By:
+{group_by}
+
+Time:
+{time}
+
+Sort:
+{sort}
+
+Limit:
+{limit}
+
+
 
 =========================
 QUESTION
@@ -231,10 +400,10 @@ Return ONLY valid JSON.
 
 Example
 
-{
+{{
     "chart":"bar",
     "reason":"Comparing shipment count across warehouses"
-}
+}}
 
 Allowed charts
 

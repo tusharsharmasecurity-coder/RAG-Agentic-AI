@@ -32,6 +32,28 @@ class SchemaLoader:
 
         return schema
 
+    def get_schema_details(self):
+        details = {}
+
+        for table in self.inspector.get_table_names():
+            columns = self.inspector.get_columns(table)
+            foreign_keys = self.inspector.get_foreign_keys(table)
+            primary_key = self.inspector.get_pk_constraint(table).get(
+                "constrained_columns",
+                [],
+            )
+
+            details[table] = {
+                "columns": {
+                    column["name"]: str(column["type"])
+                    for column in columns
+                },
+                "primary_key": primary_key,
+                "foreign_keys": foreign_keys,
+            }
+
+        return details
+
     # -----------------------------
     # Pretty print (debug)
     # -----------------------------

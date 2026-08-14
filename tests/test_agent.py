@@ -1,18 +1,21 @@
 from src.agent import DelhiveryAgent
 
-agent = DelhiveryAgent()
 
-while True:
+def run_agent():
+    agent = DelhiveryAgent()
 
-    question = input("\nYou : ")
+    while True:
+        question = input("\nYou : ")
 
-    if question.lower() == "exit":
-        break
+        if question.lower() == "exit":
+            break
 
-    response = agent.ask(question)
+        response = agent.ask(question)
 
-    print("\n====================")
+        print("\n====================")
+        print(response)
+        print("====================")
 
-    print(response)
 
-    print("====================")
+if __name__ == "__main__":
+    run_agent()

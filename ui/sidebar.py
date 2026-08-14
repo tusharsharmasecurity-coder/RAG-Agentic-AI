@@ -1,11 +1,9 @@
 import streamlit as st
 
-print(">>> NEW SIDEBAR LOADED")
 
 def show_sidebar():
-
     with st.sidebar:
-
-        st.title("Delhivery AI")
-
-        st.success("Sidebar Loaded Successfully")
+        st.markdown("<span class='brand-mark'></span><strong style='font-size:1.35rem;color:#182238;'>DELHIVERY</strong>", unsafe_allow_html=True)
+        st.caption("Operations intelligence")
+        st.space("medium")
+        st.caption("WORKSPACE")

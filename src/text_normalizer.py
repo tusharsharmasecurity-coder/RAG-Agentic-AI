@@ -21,12 +21,30 @@ STOP_WORDS = {
     "in",
 }
 
+ABBREVIATIONS = {
+    "hw": "how",
+    "mny": "many",
+    "shipmnt": "shipment",
+    "shipmnts": "shipments",
+    "shpmnt": "shipment",
+    "shpmnts": "shipments",
+}
+
 
 def normalize(question):
 
     question = question.lower()
 
     question = re.sub(r"[^a-z0-9 ]", " ", question)
+
+    words = [
+        ABBREVIATIONS.get(word, word)
+        for word in question.split()
+    ]
+    question = " ".join(words)
+
+    # Preserve the count intent before removing conversational stop words.
+    question = re.sub(r"\bhow\s+many\b", "count", question)
 
     for key, value in sorted(
         BUSINESS_TERMS.items(),
@@ -38,12 +56,12 @@ def normalize(question):
 
         question = re.sub(pattern, value, question)
 
-    words = []
+    normalized_words = []
 
     for word in question.split():
 
         if word not in STOP_WORDS:
 
-            words.append(word)
+            normalized_words.append(word)
 
-    return " ".join(words)
+    return " ".join(normalized_words)

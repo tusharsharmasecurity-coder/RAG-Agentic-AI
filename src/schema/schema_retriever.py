@@ -1,4 +1,5 @@
 from src.schema.schema_loader import SchemaLoader
+from src.schema.schema_graph import SchemaGraph
 from src.memory.business_dictionary import BUSINESS_TERMS
 
 
@@ -6,6 +7,7 @@ class SchemaRetriever:
 
     def __init__(self):
         self.loader = SchemaLoader()
+        self.graph = SchemaGraph.from_loader(self.loader)
 
     def retrieve(self, question: str):
 
@@ -58,4 +60,4 @@ class SchemaRetriever:
             reverse=True
         )
 
-        return relevant_schema
+        return self.graph.enrich(relevant_schema)

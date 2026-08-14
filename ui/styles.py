@@ -1,119 +1,31 @@
 import streamlit as st
 
-def load_css():
 
+def load_css():
     st.markdown("""
 <style>
-
-/* ---------- Main ---------- */
-
-.stApp{
-
-    background:#111827;
-
-    color:#F9FAFB;
-
-}
-
-/* ---------- Sidebar ---------- */
-
-section[data-testid="stSidebar"]{
-
-    background:#1E293B;
-
-    border-right:1px solid #334155;
-
-}
-
-/* ---------- Header ---------- */
-
-.header{
-
-    background:linear-gradient(90deg,#0057B8,#009FE3);
-
-    padding:30px;
-
-    border-radius:20px;
-
-    color:white;
-
-    box-shadow:0 8px 25px rgba(0,0,0,.35);
-
-}
-
-/* ---------- KPI Cards ---------- */
-
-.metric-card{
-
-    background:#1F2937;
-
-    border-radius:18px;
-
-    padding:22px;
-
-    border:1px solid #374151;
-
-    transition:.3s;
-
-    text-align:center;
-
-}
-
-.metric-card:hover{
-
-    transform:translateY(-5px);
-
-    border:1px solid #00AEEF;
-
-    box-shadow:0px 10px 25px rgba(0,174,239,.25);
-
-}
-
-.metric-title{
-
-    color:#9CA3AF;
-
-    font-size:15px;
-
-}
-
-.metric-value{
-
-    color:white;
-
-    font-size:34px;
-
-    font-weight:bold;
-
-}
-
-/* ---------- Chat ---------- */
-
-.stChatInput{
-
-    background:#1F2937;
-
-}
-
-/* ---------- Buttons ---------- */
-
-.stButton>button{
-
-    background:#0057B8;
-
-    color:white;
-
-    border:none;
-
-    border-radius:10px;
-
-}
-
-.stButton>button:hover{
-
-    background:#0077CC;
-
-}
-
+:root { --ink:#182238; --muted:#65708a; --line:#e5e9f0; --canvas:#f7f8fb; --accent:#ef443b; --soft-red:#fff0ef; --soft-blue:#eef2ff; }
+.stApp { background:var(--canvas); color:var(--ink); }
+.block-container { max-width:1440px; padding-top:2.3rem; padding-bottom:3rem; }
+section[data-testid="stSidebar"] { background:#fff; border-right:1px solid var(--line); }
+section[data-testid="stSidebar"] > div { padding-top:1.15rem; }
+[data-testid="stSidebar"] .stRadio label { border-radius:10px; color:#27324a; font-weight:600; padding:0.55rem 0.65rem; }
+[data-testid="stSidebar"] .stRadio label:has(input:checked) { background:var(--soft-red); color:var(--accent); }
+h1, h2, h3 { color:var(--ink); letter-spacing:-0.025em; }
+[data-testid="stMetric"] { background:#fff; border:1px solid var(--line); border-radius:16px; padding:1rem 1.1rem; }
+[data-testid="stMetricLabel"] { color:var(--muted); }
+[data-testid="stMetricValue"] { color:var(--ink); }
+.stButton > button { border:1px solid #dce2ec; border-radius:10px; background:#fff; color:#27324a; font-weight:600; min-height:2.65rem; }
+.stButton > button:hover { color:#c8322a; border-color:#ef443b; background:var(--soft-red); }
+.stChatInput textarea { background:#fff; border:1px solid #dce2ec; border-radius:12px; }
+.stChatMessage { background:#fff; border:1px solid var(--line); border-radius:14px; padding:0.8rem; }
+.ops-header { background:#fff; border:1px solid var(--line); border-radius:18px; padding:1.35rem 1.5rem; box-shadow:0 8px 24px rgba(28,39,65,.05); }
+.brand-mark { width:38px; height:38px; background:linear-gradient(135deg,#171c27 0 50%,#ef443b 50% 100%); border-radius:8px; display:inline-block; vertical-align:middle; margin-right:10px; }
+.eyebrow { color:#7d89a3; font-size:.78rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.header-title { font-size:1.55rem; font-weight:750; color:var(--ink); margin:.2rem 0; }
+.header-subtitle { color:var(--muted); font-size:.94rem; }
+.dataset-pill { background:var(--soft-blue); color:#4c5d94; border-radius:999px; padding:.5rem .8rem; font-size:.82rem; font-weight:650; display:inline-block; }
+.insight-card { background:linear-gradient(110deg,#fff2f0,#e9edff); border-radius:16px; padding:1.2rem 1.35rem; border:1px solid #f0e5ee; }
+.section-label { color:#7d89a3; font-size:.78rem; font-weight:750; letter-spacing:.07em; text-transform:uppercase; margin-bottom:.25rem; }
 </style>
 """, unsafe_allow_html=True)

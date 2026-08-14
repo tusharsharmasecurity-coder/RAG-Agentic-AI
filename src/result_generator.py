@@ -1,33 +1,32 @@
-from src.models.router import ModelRouter
-
-router = ModelRouter()
-
-
 class ResultGenerator:
 
-    def generate(self, question, sql_result):
+    def generate(self, question, rows):
 
-        prompt = f"""
-You are a data analyst.
+        if not rows:
+            return "No matching records were found."
 
-Question:
-{question}
+        # ----------------------------
+        # Single value
+        # ----------------------------
 
-SQL Result:
-{sql_result}
+        if len(rows) == 1 and len(rows[0]) == 1:
 
-Rules:
+            value = rows[0][0]
 
-- Answer ONLY from the SQL result.
-- Never invent numbers.
-- Never infer information.
-- Never mention anything not present.
-- If the SQL result is empty, say:
-"No matching records were found."
+            q = question.lower()
 
-Return a short professional answer.
-"""
+            if "count" in q or "how many" in q or "shipment" in q or "awb" in q:
 
-        response = router.chat().invoke(prompt)
+                return f"Total AWB: {value}"
 
-        return response.content
+            return str(value)
+
+        # ----------------------------
+        # Small table
+        # ----------------------------
+
+        if len(rows) <= 10:
+
+            return f"Found {len(rows)} records."
+
+        return f"Found {len(rows)} records."

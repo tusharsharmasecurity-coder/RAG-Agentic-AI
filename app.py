@@ -1,4 +1,3 @@
-print("========== APP.PY LOADED ==========")
 import streamlit as st
 
 from ui.styles import load_css
@@ -7,43 +6,23 @@ from ui.assistant_page import assistant_page
 from ui.upload_page import upload_page
 
 
-# ==========================================
-# Page Configuration
-# ==========================================
-
 st.set_page_config(
-    page_title="Delhivery AI Enterprise",
-    page_icon="🚚",
+    page_title="Delhivery Operations",
+    page_icon=":material/local_shipping:",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 load_css()
-
-
-# ==========================================
-# Sidebar
-# ==========================================
-
 show_sidebar()
 
 page = st.sidebar.radio(
-    "",
-    [
-        "Assistant",
-        "Upload Center",
-    ],
+    "Workspace navigation",
+    ["Assistant", "Upload Center"],
+    label_visibility="collapsed",
 )
 
-
-# ==========================================
-# Navigation
-# ==========================================
-
 if page == "Assistant":
-
     assistant_page()
-
 elif page == "Upload Center":
-
     upload_page()

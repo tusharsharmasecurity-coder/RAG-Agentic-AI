@@ -1,11 +1,19 @@
 from sqlalchemy import create_engine
+from urllib.parse import quote_plus
+
+from src.config.settings import settings
 
 DATABASE_URL = (
-    "mysql+pymysql://root:YOUME%409299@localhost:3306/delhivery_ai"
+    f"mysql+pymysql://"
+    f"{settings.DB_USER}:"
+    f"{quote_plus(settings.DB_PASSWORD)}@"
+    f"{settings.DB_HOST}:"
+    f"{settings.DB_PORT}/"
+    f"{settings.DB_NAME}"
 )
 
 engine = create_engine(
     DATABASE_URL,
     echo=False,
-    pool_pre_ping=True
+    pool_pre_ping=True,
 )

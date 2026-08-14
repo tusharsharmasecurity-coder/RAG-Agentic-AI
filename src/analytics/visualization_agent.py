@@ -1,30 +1,58 @@
-import json
-
-from src.prompt import CHART_SYSTEM_PROMPT
-from src.models.router import ModelRouter
-
-router = ModelRouter()
+import pandas as pd
 
 
 class VisualizationAgent:
 
-    def decide(self, dataframe):
+    def decide(self, df):
 
-        columns = list(dataframe.columns)
-
-        prompt = CHART_SYSTEM_PROMPT.format(
-            columns=columns
-        )
-
-        response = router.dashboard().invoke(prompt)
-
-        try:
-
-            return json.loads(response.content)
-
-        except:
+        if df.empty:
 
             return {
                 "chart": "table",
-                "reason": "Fallback"
+                "reason": "Empty dataframe"
             }
+
+        numeric = list(df.select_dtypes(include="number").columns)
+
+        categorical = list(df.select_dtypes(exclude="number").columns)
+
+        # KPI
+        if len(df.columns) == 1 and len(numeric) == 1:
+
+            return {
+                "chart": "kpi",
+                "reason": "Single numeric value"
+            }
+
+        # Line
+        if len(numeric) == 1:
+
+            for c in df.columns:
+
+                if "date" in c.lower() or "lsd" in c.lower():
+
+                    return {
+                        "chart": "line",
+                        "reason": "Time series"
+                    }
+
+        # Pie
+        if len(df) <= 8 and len(categorical) == 1 and len(numeric) == 1:
+
+            return {
+                "chart": "pie",
+                "reason": "Category distribution"
+            }
+
+        # Bar
+        if len(categorical) >= 1 and len(numeric) >= 1:
+
+            return {
+                "chart": "bar",
+                "reason": "Category comparison"
+            }
+
+        return {
+            "chart": "table",
+            "reason": "Fallback"
+        }
