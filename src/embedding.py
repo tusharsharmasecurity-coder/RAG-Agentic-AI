@@ -4,7 +4,7 @@ from typing import List, Any
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
-from sentence_transformers import SentenceTransformer
+from src.memory.embedding_manager import EmbeddingManager
 import numpy as np
 from src.data_loader import load_all_documents
 
@@ -24,7 +24,8 @@ class EmbeddingPipeline:
     ):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.model = SentenceTransformer(model_name)
+        self.embedding = EmbeddingManager(model_name)
+        self.model = self.embedding.model
 
         print(f"[INFO] Loaded embedding model: {model_name}")
 
@@ -47,10 +48,7 @@ class EmbeddingPipeline:
 
         print(f"[INFO] Generating embeddings for {len(texts)} chunks...")
 
-        embeddings = self.model.encode(
-            texts,
-            show_progress_bar=True
-        )
+        embeddings = self.embedding.embed_documents(texts)
 
         print(f"[INFO] Embeddings shape: {embeddings.shape}")
 

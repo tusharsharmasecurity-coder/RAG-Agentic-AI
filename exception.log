@@ -1,0 +1,11 @@
+assistant_page() failed.
+Traceback (most recent call last):
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\app.py", line 53, in <module>
+    assistant_page()
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\ui\assistant_page.py", line 108, in assistant_page
+    answer = ask_llm(
+             ^^^^^^^^
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\src\llm.py", line 22, in ask_llm
+    response = llm(messages)
+               ^^^^^^^^^^^^^
+TypeError: 'ChatNVIDIA' object is not callable

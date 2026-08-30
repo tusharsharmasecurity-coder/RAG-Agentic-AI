@@ -3,54 +3,48 @@ import re
 from src.memory.business_dictionary import BUSINESS_TERMS
 
 
-STOP_WORDS = {
-    "how",
-    "many",
-    "show",
-    "please",
-    "can",
-    "could",
-    "you",
-    "tell",
-    "me",
-    "the",
-    "is",
-    "are",
-    "what",
-    "all",
-    "of",
-    "in"
-}
+def normalize(question: str) -> str:
+    """
+    Normalize questions for semantic memory lookup.
 
+    This normalization preserves natural-language meaning while
+    canonicalizing known business terminology.
+    """
 
-def normalize(question):
+    if not question:
+        return ""
 
-    question = question.lower()
+    question = re.sub(
+        r"\s+",
+        " ",
+        question,
+    ).strip().lower()
 
     # Remove punctuation
-    question = re.sub(r"[^a-z0-9 ]", " ", question)
+    question = re.sub(
+        r"[^a-z0-9 ]",
+        " ",
+        question,
+    )
 
-    # Replace ONLY whole words / phrases
+    question = re.sub(
+        r"\s+",
+        " ",
+        question,
+    ).strip()
+
+    # Normalize business terminology
     for key, value in sorted(
         BUSINESS_TERMS.items(),
         key=lambda x: len(x[0]),
         reverse=True,
     ):
-
-        pattern = r"\b" + re.escape(key) + r"\b"
+        pattern = r"\b" + re.escape(key.lower()) + r"\b"
 
         question = re.sub(
             pattern,
             value,
-            question
+            question,
         )
 
-    words = []
-
-    for word in question.split():
-
-        if word not in STOP_WORDS:
-
-            words.append(word)
-
-    return " ".join(words)
+    return question

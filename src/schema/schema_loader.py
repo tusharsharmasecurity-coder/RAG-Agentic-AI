@@ -1,12 +1,12 @@
 from sqlalchemy import inspect
-from src.db_engine import engine
+from src.db_engine import get_engine
 
 
 class SchemaLoader:
 
     def __init__(self):
 
-        self.inspector = inspect(engine)
+        self.inspector = inspect(get_engine())
 
     # -----------------------------
     # Return all tables + columns
@@ -31,6 +31,12 @@ class SchemaLoader:
             ]
 
         return schema
+
+    def get_foreign_keys(self):
+        return {
+            table: self.inspector.get_foreign_keys(table)
+            for table in self.inspector.get_table_names()
+        }
 
     # -----------------------------
     # Pretty print (debug)

@@ -1,52 +1,75 @@
-from src.database import Database
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Dashboard:
+    # ... your existing code ...
 
-    def __init__(self):
-
-        self.db = Database()
-
-    # --------------------------------------
-    # Active Dataset
-    # --------------------------------------
+    def close(self):
+        """Safely close dashboard resources."""
+        pass
+    
+    def __init__(self, db):
+        self.db = db
 
     def get_active_table(self):
-
-        result = self.db.execute_one("""
+        result = self.db.execute_one(
+            """
             SELECT setting_value
             FROM system_settings
-            WHERE setting_key='active_table'
-            """)
+            WHERE setting_key = 'active_table'
+            """
+        )
 
-        if result:
-            return result[0]
+        if not result:
+            return None
 
-        return "No Dataset"
-
-    # --------------------------------------
-    # Dashboard KPIs
-    # --------------------------------------
+        return result[0]
 
     def get_stats(self):
+        """
+        Return dashboard statistics using the currently active table.
+
+        The application currently uses tataunystore rather than a
+        hard-coded shipments table.
+        """
 
         active_table = self.get_active_table()
 
-        print("Active Table:", active_table)
+        if not active_table:
+            return {
+                "shipments": 0,
+                "delayed": 0,
+                "delivered": 0,
+                "tables": 0,
+            }
 
-        if active_table == "No Dataset":
+        # Basic protection against SQL injection through the table name.
+        if not active_table.replace("_", "").isalnum():
+            raise ValueError(f"Invalid active table name: {active_table}")
 
-            return {"shipments": 0, "delayed": 0, "delivered": 0, "tables": 0}
-
-        shipments = self.db.execute_one(f"""
-            SELECT COUNT(*)
-            FROM `{active_table}`
-            """)[0]
-
-        tables = self.db.execute_one("""
+        # Number of tables in the database.
+        tables_result = self.db.execute_one(
+            """
             SELECT COUNT(*)
             FROM information_schema.tables
-            WHERE table_schema='delhivery_ai'
-            """)[0]
+            WHERE table_schema = DATABASE()
+            """
+        )
 
-        return {"shipments": shipments, "delayed": 0, "delivered": 0, "tables": tables}
+        tables = tables_result[0] if tables_result else 0
+
+        # Total records in active table.
+        shipments_result = self.db.execute_one(
+            f"SELECT COUNT(*) FROM `{active_table}`"
+        )
+
+        shipments = shipments_result[0] if shipments_result else 0
+
+        return {
+            "shipments": shipments,
+            "delayed": 0,
+            "delivered": 0,
+            "tables": tables,
+        }

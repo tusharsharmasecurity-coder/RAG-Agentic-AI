@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from src.database import Database
-from src.db_engine import engine
+from src.db_engine import get_engine
 from src.excel_importer import ExcelImporter
 from src.schema_validator import SchemaValidator
 from src.upload.data_cleaner import DataCleaner
@@ -54,7 +54,7 @@ def upload_page():
         return
 
     try:
-        validator = SchemaValidator(engine)
+        validator = SchemaValidator(get_engine())
         st.success("✅ STEP 5 - SchemaValidator Created")
     except Exception as e:
         st.error(f"❌ SchemaValidator Error\n\n{e}")

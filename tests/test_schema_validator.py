@@ -1,9 +1,5 @@
-from sqlalchemy import create_engine
 from src.schema_validator import SchemaValidator
-
-engine = create_engine(
-    "mysql+pymysql://root:YOUME%409299@localhost/delhivery_ai"
-)
+from src.db_engine import engine
 
 validator = SchemaValidator(engine)
 

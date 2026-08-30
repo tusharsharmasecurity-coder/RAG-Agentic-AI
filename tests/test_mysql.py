@@ -1,12 +1,12 @@
 import mysql.connector
+from src.config import settings
 
 print("THIS IS THE NEW FILE")
 
+user, password = settings.require_database_credentials()
 conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="YOUME@9299",
-    database="companydb"
+    host=settings.db_host, port=settings.db_port, user=user, password=password,
+    database=settings.db_name,
 )
 
 print("✅ Connected Successfully!")

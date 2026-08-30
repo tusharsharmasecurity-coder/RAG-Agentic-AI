@@ -23,19 +23,25 @@ def rag_tool(question: str):
     context = "\n\n".join(docs)
 
     prompt = f"""
-You are Delhivery AI.
+    You are a logistics SOP assistant.
 
-Answer ONLY from the provided context.
+      Answer the question using ONLY the information in the Context.
 
-If the answer is not found, say:
-'I couldn't find this information in the SOP.'
+     Rules:
+    - Do not use outside knowledge.
+    - Do not guess.
+    - Be concise.
+    - Give at most 4 bullet points.
+    - Include only information relevant to the question.
 
-Context:
-{context}
+    Question:
+       {question}
 
-Question:
-{question}
-"""
+    Context:
+    {context}
+
+    Answer:
+    """
 
     response = router.rag().invoke(prompt)
 

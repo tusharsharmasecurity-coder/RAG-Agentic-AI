@@ -1,0 +1,306 @@
+[
+  {
+    "id": "SQL01",
+    "category": "SQL",
+    "question": "How many shipments are there?",
+    "gold_sql": "SELECT COUNT(DISTINCT AWB) AS Total_AWB FROM shipments;"
+  },
+  {
+    "id": "SQL02",
+    "category": "SQL",
+    "question": "How many rows are in the shipments table?",
+    "gold_sql": "SELECT COUNT(*) AS Total_Rows FROM shipments;"
+  },
+  {
+    "id": "SQL03",
+    "category": "SQL",
+    "question": "How many unique sellers are there?",
+    "gold_sql": "SELECT COUNT(DISTINCT `Seller Name`) AS Total_Sellers FROM shipments;"
+  },
+  {
+    "id": "SQL04",
+    "category": "SQL",
+    "question": "How many unique clients are there?",
+    "gold_sql": "SELECT COUNT(DISTINCT Client) AS Total_Clients FROM shipments;"
+  },
+  {
+    "id": "SQL05",
+    "category": "SQL",
+    "question": "How many unique order IDs are there?",
+    "gold_sql": "SELECT COUNT(DISTINCT `Order Id`) AS Total_Order_Ids FROM shipments;"
+  },
+  {
+    "id": "SQL06",
+    "category": "SQL",
+    "question": "How many shipment statuses are present?",
+    "gold_sql": "SELECT COUNT(DISTINCT Status) AS Distinct_Status_Count FROM shipments;"
+  },
+  {
+    "id": "SQL07",
+    "category": "SQL",
+    "question": "How many movement types are present?",
+    "gold_sql": "SELECT COUNT(DISTINCT Movement) AS Distinct_Movement_Count FROM shipments;"
+  },
+  {
+    "id": "SQL08",
+    "category": "SQL",
+    "question": "How many shipment types are present?",
+    "gold_sql": "SELECT COUNT(DISTINCT Type) AS Distinct_Type_Count FROM shipments;"
+  },
+  {
+    "id": "SQL09",
+    "category": "SQL",
+    "question": "What is the total MOP amount?",
+    "gold_sql": "SELECT SUM(MOP) AS Total_MOP FROM shipments;"
+  },
+  {
+    "id": "SQL10",
+    "category": "SQL",
+    "question": "What is the average MOP amount?",
+    "gold_sql": "SELECT AVG(MOP) AS Average_MOP FROM shipments;"
+  },
+  {
+    "id": "SQL11",
+    "category": "SQL",
+    "question": "What is the maximum liability amount?",
+    "gold_sql": "SELECT MAX(`Liability Amt`) AS Max_Liability_Amt FROM shipments;"
+  },
+  {
+    "id": "SQL12",
+    "category": "SQL",
+    "question": "What is the average liability amount?",
+    "gold_sql": "SELECT AVG(`Liability Amt`) AS Average_Liability_Amt FROM shipments;"
+  },
+  {
+    "id": "SQL13",
+    "category": "SQL",
+    "question": "What is the total liability?",
+    "gold_sql": "SELECT SUM(Liability) AS Total_Liability FROM shipments;"
+  },
+  {
+    "id": "SQL14",
+    "category": "SQL",
+    "question": "What is the average liability?",
+    "gold_sql": "SELECT AVG(Liability) AS Average_Liability FROM shipments;"
+  },
+  {
+    "id": "SQL15",
+    "category": "SQL",
+    "question": "What is the maximum shipment age?",
+    "gold_sql": "SELECT MAX(Age) AS Max_Age FROM shipments;"
+  },
+  {
+    "id": "SQL16",
+    "category": "SQL",
+    "question": "What is the average shipment age?",
+    "gold_sql": "SELECT AVG(Age) AS Average_Age FROM shipments;"
+  },
+  {
+    "id": "SQL17",
+    "category": "SQL",
+    "question": "How many shipments have a pincode recorded?",
+    "gold_sql": "SELECT COUNT(Pincode) AS Pincode_Count FROM shipments;"
+  },
+  {
+    "id": "SQL18",
+    "category": "SQL",
+    "question": "How many financial years are present?",
+    "gold_sql": "SELECT COUNT(DISTINCT FY) AS Distinct_FY_Count FROM shipments;"
+  },
+  {
+    "id": "SQL19",
+    "category": "SQL",
+    "question": "How many years are present in the data?",
+    "gold_sql": "SELECT COUNT(DISTINCT Year) AS Distinct_Year_Count FROM shipments;"
+  },
+  {
+    "id": "SQL20",
+    "category": "SQL",
+    "question": "How many months are present in the data?",
+    "gold_sql": "SELECT COUNT(DISTINCT Month) AS Distinct_Month_Count FROM shipments;"
+  },
+  {
+    "id": "SQL21",
+    "category": "SQL",
+    "question": "How many unique AWBs are there in each month?",
+    "gold_sql": "SELECT Month, COUNT(DISTINCT AWB) AS Total_AWB FROM shipments GROUP BY Month ORDER BY Month;"
+  },
+  {
+    "id": "SQL22",
+    "category": "SQL",
+    "question": "How many unique AWBs are there in each year?",
+    "gold_sql": "SELECT Year, COUNT(DISTINCT AWB) AS Total_AWB FROM shipments GROUP BY Year ORDER BY Year;"
+  },
+  {
+    "id": "SQL23",
+    "category": "SQL",
+    "question": "How many shipments are there for each status?",
+    "gold_sql": "SELECT Status, COUNT(DISTINCT AWB) AS Total_AWB FROM shipments GROUP BY Status ORDER BY Status;"
+  },
+  {
+    "id": "SQL24",
+    "category": "SQL",
+    "question": "How many shipments are there for each client?",
+    "gold_sql": "SELECT Client, COUNT(DISTINCT AWB) AS Total_AWB FROM shipments GROUP BY Client ORDER BY Client;"
+  },
+  {
+    "id": "SQL25",
+    "category": "SQL",
+    "question": "How many shipments are there for each seller?",
+    "gold_sql": "SELECT `Seller Name`, COUNT(DISTINCT AWB) AS Total_AWB FROM shipments GROUP BY `Seller Name` ORDER BY `Seller Name`;"
+  },
+
+  {
+    "id": "GUARD01",
+    "category": "GUARD",
+    "question": "What is the average of AWB values?",
+    "expected_phrase": "AWB is an identifier"
+  },
+  {
+    "id": "GUARD02",
+    "category": "GUARD",
+    "question": "Can you sum the AWB values?",
+    "expected_phrase": "AWB is an identifier"
+  },
+  {
+    "id": "GUARD03",
+    "category": "GUARD",
+    "question": "What is the maximum AWB value?",
+    "expected_phrase": "AWB is an identifier"
+  },
+  {
+    "id": "GUARD04",
+    "category": "GUARD",
+    "question": "What is the minimum of AWB?",
+    "expected_phrase": "AWB is an identifier"
+  },
+  {
+    "id": "GUARD05",
+    "category": "GUARD",
+    "question": "What is the average AWB?",
+    "expected_phrase": "AWB is an identifier"
+  },
+
+  {
+    "id": "RAG01",
+    "category": "RAG",
+    "question": "What is the damage SOP?",
+    "expected_keywords": ["unboxing", "images", "48-72"]
+  },
+  {
+    "id": "RAG02",
+    "category": "RAG",
+    "question": "Explain the damage product SOP.",
+    "expected_keywords": ["unboxing", "images", "48-72"]
+  },
+  {
+    "id": "RAG03",
+    "category": "RAG",
+    "question": "What evidence is required for a damaged shipment?",
+    "expected_keywords": ["unboxing", "images", "AWB"]
+  },
+  {
+    "id": "RAG04",
+    "category": "RAG",
+    "question": "Within what TAT should a damaged shipment case be escalated?",
+    "expected_keywords": ["48-72", "post-delivery"]
+  },
+  {
+    "id": "RAG05",
+    "category": "RAG",
+    "question": "What happens if the damage dispute is not escalated within the agreed TAT?",
+    "expected_keywords": ["will not accept", "dispute"]
+  },
+  {
+    "id": "RAG06",
+    "category": "RAG",
+    "question": "How much time does the client have to share the required evidence?",
+    "expected_keywords": ["48 hours", "evidence"]
+  },
+  {
+    "id": "RAG07",
+    "category": "RAG",
+    "question": "Are outer packing images required for a damage dispute?",
+    "expected_keywords": ["outer packing", "images", "AWB"]
+  },
+  {
+    "id": "RAG08",
+    "category": "RAG",
+    "question": "What should be provided when a customer accepts a tampered shipment?",
+    "expected_keywords": ["unboxing", "images", "AWB"]
+  },
+  {
+    "id": "RAG09",
+    "category": "RAG",
+    "question": "What is the client-side TAT for sharing damage evidence?",
+    "expected_keywords": ["48 hours"]
+  },
+  {
+    "id": "RAG10",
+    "category": "RAG",
+    "question": "What is the SOP for a damaged shipment accepted by the customer?",
+    "expected_keywords": ["48-72", "unboxing", "images"]
+  },
+
+  {
+    "id": "BOTH01",
+    "category": "BOTH",
+    "question": "How many shipments are there and what is the damage SOP?",
+    "gold_sql": "SELECT COUNT(DISTINCT AWB) AS Total_AWB FROM shipments;",
+    "expected_keywords": ["unboxing", "48-72"]
+  },
+  {
+    "id": "BOTH02",
+    "category": "BOTH",
+    "question": "How many unique AWBs are there and explain the damage product SOP?",
+    "gold_sql": "SELECT COUNT(DISTINCT AWB) AS Total_AWB FROM shipments;",
+    "expected_keywords": ["unboxing", "48-72"]
+  },
+  {
+    "id": "BOTH03",
+    "category": "BOTH",
+    "question": "Tell me the total shipments and the evidence needed for damaged shipments.",
+    "gold_sql": "SELECT COUNT(DISTINCT AWB) AS Total_AWB FROM shipments;",
+    "expected_keywords": ["images", "AWB"]
+  },
+  {
+    "id": "BOTH04",
+    "category": "BOTH",
+    "question": "Give me the shipment count and explain the damage dispute TAT.",
+    "gold_sql": "SELECT COUNT(DISTINCT AWB) AS Total_AWB FROM shipments;",
+    "expected_keywords": ["48-72"]
+  },
+  {
+    "id": "BOTH05",
+    "category": "BOTH",
+    "question": "How many shipments are there, and what is the client TAT for damage evidence?",
+    "gold_sql": "SELECT COUNT(DISTINCT AWB) AS Total_AWB FROM shipments;",
+    "expected_keywords": ["48 hours"]
+  },
+
+  {
+    "id": "CHAT01",
+    "category": "CHAT",
+    "question": "Hi"
+  },
+  {
+    "id": "CHAT02",
+    "category": "CHAT",
+    "question": "Hello"
+  },
+  {
+    "id": "CHAT03",
+    "category": "CHAT",
+    "question": "Thanks"
+  },
+  {
+    "id": "CHAT04",
+    "category": "CHAT",
+    "question": "Good morning"
+  },
+  {
+    "id": "CHAT05",
+    "category": "CHAT",
+    "question": "Bye"
+  }
+]

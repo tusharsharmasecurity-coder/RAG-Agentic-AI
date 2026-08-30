@@ -1,14 +1,153 @@
+import re
+import time
+
 from src.models.router import ModelRouter
 from src.planner_validator import PlannerValidator
-
-router = ModelRouter()
-
 from src.logger import log
 
 
+router = ModelRouter()
+
+
 class Planner:
+
     def __init__(self):
         self.validator = PlannerValidator()
+
+    # ============================================================
+    # LOCAL FALLBACK
+    # ============================================================
+
+    def local_fallback(self, question: str) -> str:
+
+        q = question.lower().strip()
+
+        # -----------------------------
+        # CHAT
+        # -----------------------------
+
+        if re.fullmatch(
+            r"(hi|hello|hey|thanks|thank you|bye|goodbye)",
+            q,
+        ):
+            return "CHAT"
+
+        # -----------------------------
+        # DATAFRAME
+        # -----------------------------
+
+        dataframe_patterns = [
+            "sort this",
+            "filter this",
+            "top 10",
+            "plot this",
+            "average of this",
+            "show only",
+            "group this",
+        ]
+
+        if any(pattern in q for pattern in dataframe_patterns):
+            return "DATAFRAME"
+
+        # -----------------------------
+        # RAG
+        # -----------------------------
+
+        rag_patterns = [
+            "sop",
+            "policy",
+            "documentation",
+            "process",
+            "manual",
+            "guideline",
+            "guidelines",
+            "procedure",
+            "explain closure process",
+        ]
+
+        if any(pattern in q for pattern in rag_patterns):
+            return "RAG"
+
+        # -----------------------------
+        # BOTH
+        # -----------------------------
+
+        sql_terms = [
+            "count",
+            "how many",
+            "total",
+            "sum",
+            "average",
+            "avg",
+            "max",
+            "min",
+            "shipment",
+            "shipments",
+            "awb",
+            "tracking",
+            "warehouse",
+            "database",
+        ]
+
+        has_sql = any(term in q for term in sql_terms)
+        has_rag = any(term in q for term in rag_patterns)
+
+        if has_sql and has_rag:
+            return "BOTH"
+
+        # -----------------------------
+        # SQL
+        # -----------------------------
+
+        if has_sql:
+            return "SQL"
+
+        return "CHAT"
+
+    # ============================================================
+    # NVIDIA PLANNER
+    # ============================================================
+
+    def _remote_plan(self, prompt: str):
+
+        max_retries = 3
+
+        for attempt in range(1, max_retries + 1):
+
+            try:
+
+                response = router.planner().invoke(prompt)
+
+                return response.content
+
+            except Exception as exc:
+
+                error_text = str(exc)
+
+                print(
+                    f"[PLANNER] Remote planner attempt "
+                    f"{attempt}/{max_retries} failed: {error_text}"
+                )
+
+                # Retry only service-overload / temporary failures
+                if "503" not in error_text and "Service temporarily overloaded" not in error_text:
+                    raise
+
+                if attempt < max_retries:
+
+                    delay = 1.5 * attempt
+
+                    print(
+                        f"[PLANNER] Retrying in {delay:.1f}s..."
+                    )
+
+                    time.sleep(delay)
+
+        return None
+
+    # ============================================================
+    # MAIN PLAN
+    # ============================================================
 
     def plan(self, question, context=""):
 
@@ -106,37 +245,82 @@ RAG
 BOTH
 DATAFRAME
 CHAT
-
 """
 
-        response = router.planner().invoke(prompt)
+        # ========================================================
+        # REMOTE PLANNER
+        # ========================================================
 
-        print("\n========== RAW NEMOTRON ==========")
-        print(response.content)
+        text = self._remote_plan(prompt)
 
-        text = response.content.upper()
+        if text is not None:
 
-        print("\n========== PARSED ==========")
-        print(text)
+            print("\n========== RAW NEMOTRON ==========")
+            print(text)
 
-        if "DATAFRAME" in text:
-            intent = "DATAFRAME"
-        elif "BOTH" in text:
-            intent = "BOTH"
-        elif "SQL" in text:
-            intent = "SQL"
-        elif "RAG" in text:
-            intent = "RAG"
-        elif "CHAT" in text:
-            intent = "CHAT"
+            text = text.upper().strip()
+
+            print("\n========== PARSED ==========")
+            print(text)
+
+            if "DATAFRAME" in text:
+                intent = "DATAFRAME"
+
+            elif "BOTH" in text:
+                intent = "BOTH"
+
+            elif "SQL" in text:
+                intent = "SQL"
+
+            elif "RAG" in text:
+                intent = "RAG"
+
+            elif "CHAT" in text:
+                intent = "CHAT"
+
+            else:
+                intent = self.local_fallback(question)
+
+        # ========================================================
+        # LOCAL FALLBACK
+        # ========================================================
+
         else:
-            intent = "CHAT"
-        print("\n========== FINAL INTENT ==========")
-        print(intent)
-        validation = self.validator.validate(question, intent)
+
+            print(
+                "\n[PLANNER] Remote planner unavailable."
+            )
+
+            intent = self.local_fallback(question)
+
+            print(
+                f"[PLANNER] Local fallback intent = {intent}"
+            )
+
+        # ========================================================
+        # VALIDATION
+        # ========================================================
+
+        validation = self.validator.validate(
+            question,
+            intent,
+        )
 
         if validation["decision"] == "FAIL":
-            intent = "CHAT"
 
-        log("PLANNER", f"Intent = {intent}")
+            print(
+                f"[PLANNER] Validation failed: "
+                f"{validation.get('reason', 'Unknown reason')}"
+            )
+
+            intent = self.local_fallback(question)
+
+        print("\n========== FINAL INTENT ==========")
+        print(intent)
+
+        log(
+            "PLANNER",
+            f"Intent = {intent}",
+        )
+
         return intent

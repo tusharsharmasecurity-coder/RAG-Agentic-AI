@@ -8,3 +8,7 @@ faiss-cpu
 chromadb
 langchain-groq
 python-dotenv
+sqlglot>=27.0
+rapidfuzz>=3.14
+redis>=6.0
+networkx>=3.6.1

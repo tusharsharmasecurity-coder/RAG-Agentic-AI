@@ -1,35 +1,54 @@
 BUSINESS_TERMS = {
 
-    # Shipment
-    "shipment": "AWB",
-    "shipments": "AWB",
-    "awb": "AWB",
-    "tracking": "AWB",
-    "tracking number": "AWB",
+    # -------------------------------------------------
+    # IDENTIFIERS
+    # -------------------------------------------------
 
-    # Warehouse
+    "awb number": "AWB",
+    "tracking number": "AWB",
+    "tracking id": "AWB",
+
+    # -------------------------------------------------
+    # WAREHOUSE / LOCATION
+    # -------------------------------------------------
+
     "warehouse": "DC",
     "warehouses": "DC",
     "hub": "DC",
-    "center": "DC",
     "facility": "DC",
+    "distribution center": "DC",
 
-    # Location
-    "location": "Scan Location",
+    # -------------------------------------------------
+    # LOCATION
+    # -------------------------------------------------
+
     "scan location": "Scan Location",
 
-    # Date
-    "date": "LSD",
+    # -------------------------------------------------
+    # DATE
+    # -------------------------------------------------
+
     "shipment date": "LSD",
     "delivery date": "LSD",
 
-    # Money
+    # -------------------------------------------------
+    # MONEY
+    # -------------------------------------------------
+
     "amount": "Value",
     "price": "Value",
     "cost": "Value",
-    "value": "Value",
 
-    # Status
-    "status": "Validation",
-    "closure": "Closure"
+    # -------------------------------------------------
+    # STATUS
+    # -------------------------------------------------
+
+    "current status": "Status",
+    "shipment status": "Status",
+
+    # -------------------------------------------------
+    # CLOSURE
+    # -------------------------------------------------
+
+    "closure": "Closure",
 }

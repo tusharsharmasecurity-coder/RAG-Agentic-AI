@@ -1,8 +1,4 @@
-from sqlalchemy import create_engine
-
-engine = create_engine(
-    "mysql+pymysql://root:YOUME%409299@localhost:3306/delhivery_ai"
-)
+from src.db_engine import engine
 
 try:
     conn = engine.connect()

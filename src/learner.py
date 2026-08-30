@@ -18,7 +18,6 @@ class LearningEngine:
         execution_time,
         model="llama3",
     ):
-
         query = """
         INSERT INTO learning_logs
         (
@@ -32,8 +31,7 @@ class LearningEngine:
             execution_time,
             model
         )
-        VALUES
-        (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
         """
 
         self.db.cursor.execute(
@@ -52,15 +50,53 @@ class LearningEngine:
         )
 
         self.db.connection.commit()
+
         return self.db.cursor.lastrowid
+
+    def save_correction(
+        self,
+        question,
+        failed_sql,
+        corrected_sql,
+        error_message,
+        success=True,
+    ):
+        query = """
+        INSERT INTO learning_corrections
+        (
+            question,
+            failed_sql,
+            corrected_sql,
+            error_message,
+            success
+        )
+        VALUES (%s,%s,%s,%s,%s)
+        """
+
+        self.db.cursor.execute(
+            query,
+            (
+                question,
+                failed_sql,
+                corrected_sql,
+                error_message,
+                success,
+            ),
+        )
+
+        self.db.connection.commit()
 
     def update_feedback(self, log_id, score):
 
         query = """
-    UPDATE learning_logs
-    SET feedback=%s
-    WHERE id=%s
-    """
+        UPDATE learning_logs
+        SET feedback=%s
+        WHERE id=%s
+        """
 
-        self.db.cursor.execute(query, (score, log_id))
+        self.db.cursor.execute(
+            query,
+            (score, log_id),
+        )
+
         self.db.connection.commit()

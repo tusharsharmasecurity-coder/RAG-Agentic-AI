@@ -1,11 +1,11 @@
 from sqlalchemy import inspect
-from src.db_engine import engine
+from src.db_engine import get_engine
 
 
 class ExcelImporter:
 
     def __init__(self):
-        self.engine = engine
+        self.engine = get_engine()
 
     def table_exists(self, table_name):
         inspector = inspect(self.engine)

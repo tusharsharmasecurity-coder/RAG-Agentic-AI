@@ -35,4 +35,14 @@ dependencies = [
     "transformers==4.56.2",
     "accelerate==1.10.1",
     "langchain-nvidia-ai-endpoints>=1.4.3",
+    "mysql-connector-python>=9.0",
+    "networkx>=3.6.1",
+    "rapidfuzz>=3.14",
+    "redis>=6.0",
+    "sqlglot>=27.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
 ]

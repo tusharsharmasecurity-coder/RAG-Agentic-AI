@@ -1,195 +1,182 @@
+import time
+
 from src.planner_engine import PlannerEngine
 from src.logger import log
 from src.supervisor.supervisor import Supervisor
 from src.question_normalizer import QuestionNormalizer
-from src.text_normalizer import normalize
-import time
 from src.quality.checker import QualityChecker
+from src.agents.orchestrator import AgentOrchestrator
+from src.monitoring.metrics import MetricsCollector
 
 
 class DelhiveryAgent:
 
     def __init__(self):
 
+        # ========================================================
+        # CORE COMPONENTS
+        # ========================================================
+
         self.planner = PlannerEngine()
-        self.supervisor = Supervisor()
+        self.metrics = MetricsCollector()
+
+        # Share the same ChatMemory with Supervisor
+        self.supervisor = Supervisor(chat_memory=self.planner.memory)
+
+        # Sprint 6 multi-agent orchestrator
+        self.orchestrator = AgentOrchestrator(self.supervisor)
+
         self.normalizer = QuestionNormalizer()
+
         self.quality = QualityChecker()
 
         log("AGENT", "Ready")
 
+    # ============================================================
+    # MAIN AGENT ENTRY POINT
+    # ============================================================
+
     def ask(self, question):
 
-        # -----------------------------
-        # Save User Message
-        # -----------------------------
+        total_start = time.time()
+
+        # ========================================================
+        # SAVE USER MESSAGE
+        # ========================================================
+
         self.planner.memory.add_user(question)
 
-        start = time.time()
+        # ========================================================
+        # PLANNING
+        # ========================================================
+
+        planner_start = time.time()
 
         plan = self.planner.create_plan(question)
 
-        print(f"Planner: {time.time()-start:.2f}s")
+        planner_time = time.time() - planner_start
 
-        intent = plan["intent"]
+        print(f"Planner: {planner_time:.2f}s")
+
+        intent = plan.get("intent", "CHAT")
 
         log("PLANNER", f"Intent = {intent}")
 
-        # =====================================================
-        # SQL
-        # =====================================================
+        print("\n========== AGENT PLAN ==========")
 
-        if intent == "SQL":
+        print(f"Intent : {intent}")
 
-            log("AGENT", "Calling SQL Tool")
+        print(f"Tools  : {plan.get('tools', [])}")
 
-            normalized_question = normalize(question)
+        # ========================================================
+        # MULTI-AGENT ORCHESTRATION
+        # ========================================================
 
-            print("ORIGINAL SQL QUESTION :", question)
-            print("NORMALIZED SQL QUESTION :", normalized_question)
+        orchestration_start = time.time()
 
-            tool_result = self.supervisor.sql(normalized_question)
-
-            if isinstance(tool_result, dict) and tool_result.get("type") == "error":
-                return {
-                    "answer": tool_result["message"],
-                    "tool_result": tool_result,
-                }
-
-            self.planner.memory.add_ai(tool_result["answer"])
-
-            return {
-                "answer": tool_result["answer"],
-                "tool_result": tool_result,
-            }
-
-        # =====================================================
-        # RAG
-        # =====================================================
-
-        elif intent == "RAG":
-
-            log("AGENT", "Calling RAG Tool")
-
-            rag_answer = self.supervisor.rag_search(question)
-
-            self.planner.memory.add_ai(rag_answer)
+        try:
+            result = self.orchestrator.execute(
+                plan=plan,
+                question=question,
+                normalizer=self.normalizer,
+            )
+        except Exception as exc:
+            log(
+                "AGENT",
+                f"Orchestrator error: {exc}",
+            )
 
             return {
-                "answer": rag_answer,
-                "tool_result": None,
-            }
-
-        # =====================================================
-        # BOTH
-        # =====================================================
-
-        elif intent == "BOTH":
-
-            log("AGENT", "Calling SQL + RAG")
-
-            parts = self.normalizer.split(question)
-
-            sql_question = parts.get("sql", question)
-            rag_question = parts.get("rag", question)
-
-            print("\nSQL QUESTION :", sql_question)
-            print("RAG QUESTION :", rag_question)
-
-            sql_result = self.supervisor.sql(sql_question)
-
-            if isinstance(sql_result, dict) and sql_result.get("type") == "error":
-
-                return {
-                    "answer": sql_result.get("message", "SQL failed."),
-                    "tool_result": sql_result,
-                }
-
-            rag_result = self.supervisor.rag_search(rag_question)
-
-            sql_answer = sql_result.get("answer")
-
-            if not sql_answer:
-                sql_answer = sql_result.get("message", "SQL result not available.")
-
-            answer = f"""{sql_answer}
-
---------------------------------------
-
-📄 Additional Information
-
-{rag_result}
-"""
-
-            self.planner.memory.add_ai(answer)
-
-            return {
-                "answer": answer,
-                "tool_result": sql_result,
-            }
-
-        # =====================================================
-        # DATAFRAME
-        # =====================================================
-
-        elif intent == "DATAFRAME":
-
-            log("AGENT", "Calling DataFrame Agent")
-
-            result = self.supervisor.dataframe(question)
-
-            if result is None:
-
-                return {
-                    "answer": "No SQL result found. Run a SQL query first.",
-                    "tool_result": None,
-                }
-
-            self.planner.memory.add_ai(result["answer"])
-
-            return {
-                "answer": result["answer"],
+                "answer": "The agent encountered an execution error.",
                 "tool_result": {
-                    "type": "table",
-                    "columns": list(result["dataframe"].columns),
-                    "rows": result["dataframe"].values.tolist(),
-                    "sql": "",
-                    "time": 0,
-                    "answer": result["answer"],
+                    "type": "error",
+                    "message": str(exc),
                 },
+                "intent": intent,
+                "execution_time": round(
+                    time.time() - total_start,
+                    4,
+                ),
             }
 
-        # =====================================================
-        # CHAT
-        # =====================================================
+        orchestration_time = time.time() - orchestration_start
 
-        else:
+        self.metrics.record(
+            question=question,
+            intent=result.get("intent", intent),
+            total_time=time.time() - total_start,
+            planner_time=planner_time,
+            orchestration_time=orchestration_time,
+            success=True,
+        )
 
-            log("AGENT", "Calling Chat Model")
+        # ========================================================
+        # RESULT
+        # ========================================================
 
-            context = self.planner.memory.get_context()
+        answer = result.get("answer", "No response generated.")
 
-            prompt = f"""
-            You are Delhivery AI Assistant.
+        tool_result = result.get("tool_result")
 
-            Conversation History:
-           {context}
+        result_intent = result.get("intent", intent)
 
-            Current User Message:
-            {question}
+        # ========================================================
+        # SAVE AI RESPONSE
+        # ========================================================
 
-            Instructions:
-           - Reply naturally.
-           - Remember previous conversation.
-           - Answer using Conversation History whenever possible.
-           - Be concise.
-            """
-
-            answer = self.supervisor.chat(prompt)
+        try:
 
             self.planner.memory.add_ai(answer)
 
-            return {
-                "answer": answer,
-                "tool_result": None,
-            }
+        except Exception as exc:
+
+            log("AGENT", f"Chat memory save failed: {exc}")
+
+        # ========================================================
+        # QUALITY CHECK
+        # ========================================================
+
+        try:
+
+            quality_result = self.quality.check(question, answer)
+
+        except Exception:
+
+            # Some existing QualityChecker
+            # implementations may have a different API.
+            quality_result = None
+
+        # ========================================================
+        # TOTAL TIMING
+        # ========================================================
+
+        total_time = time.time() - total_start
+
+        print("\n========== AGENT RESULT ==========")
+
+        print(f"Intent        : {result_intent}")
+
+        print(f"Planner time  : {planner_time:.3f}s")
+
+        print(f"Agent time    : {orchestration_time:.3f}s")
+
+        print(f"Total time    : {total_time:.3f}s")
+
+        # ========================================================
+        # FINAL RESPONSE
+        # ========================================================
+
+        response = {
+            "answer": answer,
+            "tool_result": tool_result,
+            "intent": result_intent,
+            "execution_time": round(
+                total_time,
+                4,
+            ),
+        }
+
+        if quality_result is not None:
+            response["quality"] = quality_result
+
+        return response

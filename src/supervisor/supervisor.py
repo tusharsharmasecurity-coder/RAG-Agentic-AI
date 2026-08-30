@@ -8,32 +8,26 @@ router = ModelRouter()
 
 class Supervisor:
 
-    def __init__(self):
+    def __init__(self, chat_memory=None):
 
         self.rag = RAGAgent()
-
         self.df = DataFrameAgent()
-
-    # ------------------------------
+        self.chat_memory = chat_memory
 
     def sql(self, question):
-
-        return sql_tool.invoke(question)
-
-    # ------------------------------
+        return sql_tool.invoke({"question": question})
 
     def rag_search(self, question):
-
         return self.rag.ask(question)
 
-    # ------------------------------
-
     def dataframe(self, question):
-
         return self.df.run(question)
 
-    # ------------------------------
-
     def chat(self, prompt):
-
         return router.chat().invoke(prompt).content
+
+    def chat_memory_context(self):
+        if self.chat_memory is None:
+            return ""
+
+        return self.chat_memory.get_context()

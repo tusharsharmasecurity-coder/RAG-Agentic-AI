@@ -1,174 +1,183 @@
+# ui/assistant_page.py – minimal UI, no duplicate content
 import streamlit as st
-
-from ui.quick_actions import show_quick_actions
-from ui.chat_layout import begin_chat
-from ui.header import show_header
-from ui.dashboard_cards import show_cards
-
+from src.database import Database
 from src.dashboard import Dashboard
-from src.agent import DelhiveryAgent
-from src.analytics.dashboard_agent import DashboardAgent
-from src.learner import LearningEngine
+from src.api_client import ask_agent
+from ui.dashboard_cards import show_cards
 
 
 def assistant_page():
+    # ------------------------------
+    #  Console line (optional – shows in the terminal that launched Streamlit)
+    # ------------------------------
+    print("[ASSISTANT] Page started", flush=True)  # <‑‑ changed from st.print
 
-    dashboard = Dashboard()
-    dashboard_agent = DashboardAgent()
-    agent = DelhiveryAgent()
-    learner = LearningEngine()
+    # ------------------------------
+    #  Database
+    # ------------------------------
+    try:
+        db = Database()
+        print("[ASSISTANT] Database connected", flush=True)  # <‑‑ changed
+    except Exception as exc:
+        st.error("Database connection failed.")
+        print(
+            f"[DATABASE ERROR] {type(exc).__name__}: {exc}", flush=True
+        )  # <‑‑ changed
+        return
 
-    stats = dashboard.get_stats()
-    active_table = dashboard.get_active_table()
+    # ------------------------------
+    #  Dashboard
+    # ------------------------------
+    try:
+        dashboard = Dashboard(db)
+        print("[ASSISTANT] Dashboard created", flush=True)  # <‑‑ changed
+    except Exception as exc:
+        st.error("Dashboard initialization failed.")
+        print(
+            f"[DASHBOARD ERROR] {type(exc).__name__}: {exc}", flush=True
+        )  # <‑‑ changed
+        try:
+            db.close()
+        except Exception:
+            pass
+        return
 
-    # -----------------------------
-    # Session State
-    # -----------------------------
+    # ------------------------------
+    #  Active table
+    # ------------------------------
+    try:
+        active_table = dashboard.get_active_table()
+        print(f"[ASSISTANT] Active Table: {active_table}", flush=True)  # <‑‑ changed
+    except Exception as exc:
+        active_table = "Unknown"
+        print(
+            f"[ACTIVE TABLE ERROR] {type(exc).__name__}: {exc}", flush=True
+        )  # <‑‑ changed
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    # ------------------------------
+    #  Header (simple, no duplicate)
+    # ------------------------------
+    st.markdown(
+        "<div class='title'>🚚 Delhivery AI Assistant</div>", unsafe_allow_html=True
+    )
+    st.markdown(
+        f"<div class='subtitle'>Active data table: `{active_table}`</div>",
+        unsafe_allow_html=True,
+    )
 
-    if "dashboard" not in st.session_state:
-        st.session_state.dashboard = None
-
-    if "last_tool_result" not in st.session_state:
-        st.session_state.last_tool_result = None
-
-    # -----------------------------
-    # Header
-    # -----------------------------
-
-    show_header(active_table)
+    # ------------------------------
+    #  Dashboard stats (cards)
+    # ------------------------------
+    try:
+        stats = dashboard.get_stats()
+        stats = {
+            "shipments": stats.get("shipments", 0),
+            "delayed": stats.get("delayed", 0),
+            "delivered": stats.get("delivered", 0),
+            "tables": stats.get("tables", 0),
+        }
+        show_cards(stats)  # your existing card function
+    except Exception as exc:
+        st.warning("Dashboard statistics are temporarily unavailable.")
+        print(f"[STATS ERROR] {type(exc).__name__}: {exc}", flush=True)  # <‑‑ changed
 
     st.divider()
 
-    show_cards(stats)
+    # ------------------------------
+    #  CHAT HISTORY
+    # ------------------------------
+    if "chat_messages" not in st.session_state:
+        st.session_state.chat_messages = []
 
-    st.divider()
+    # show previous messages
+    for msg in st.session_state.chat_messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-    show_quick_actions()
+    # ------------------------------
+    #  USER INPUT
+    # ------------------------------
+    user_message = st.chat_input("Ask Delhivery AI anything about your logistics data…")
 
-    begin_chat()
+    if user_message:
+        # 1️⃣ show user message immediately
+        with st.chat_message("user"):
+            st.markdown(user_message)
 
-    st.divider()
+        # 2️⃣ store user message
+        st.session_state.chat_messages.append({"role": "user", "content": user_message})
 
-    # ==========================================
-    # MAIN LAYOUT
-    # ==========================================
+        # 3️⃣ build conversation history for the LLM
+        history = [
+            {"role": m["role"], "content": m["content"]}
+            for m in st.session_state.chat_messages[
+                :-1
+            ]  # all but the just‑sent user msg
+        ]
 
-    chat_col, analytics_col = st.columns([2, 1], gap="large")
+        # 4️⃣ call the LLM (the function you already import)
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking…"):
 
-    # ==========================================
-    # CHAT
-    # ==========================================
+                try:
+                    response = ask_agent(user_message)
 
-    with chat_col:
+                    result = response["result"]
 
-        # Chat History
-        for message in st.session_state.messages:
+                    answer = result.get("answer", "No response generated.")
 
-            with st.chat_message(message["role"]):
+                    intent = result.get("intent", "UNKNOWN")
 
-                if message["role"] == "user":
+                    execution_time = result.get("execution_time", 0)
 
-                    st.write(message["content"])
+                    tool_result = result.get("tool_result")
 
-                else:
+                except Exception as exc:
 
-                    result = message["content"]
+                    answer = f"Agent API error: {exc}"
 
-                    if result.get("answer"):
-                        st.write(result["answer"])
+                    intent = "ERROR"
 
-        # Chat Input
-        question = st.chat_input("Ask Delhivery AI...")
+                    execution_time = 0
 
-        if question:
+                    tool_result = None
 
-            st.session_state.messages.append({"role": "user", "content": question})
+                # ------------------------------------------------
+                # Answer
+                # ------------------------------------------------
 
-            with st.chat_message("user"):
-                st.write(question)
+                st.markdown(answer)
 
-            with st.chat_message("assistant"):
+                # ------------------------------------------------
+                # Agent information
+                # ------------------------------------------------
 
-                with st.spinner("🤖 Thinking..."):
+                with st.expander("🔎 Agent Details"):
 
-                    result = agent.ask(question)
-                st.json(result)
+                    col1, col2 = st.columns(2)
 
-                if result.get("answer"):
-                    st.write(result["answer"])
-
-                if result.get("tool_result"):
-
-                    st.session_state.last_tool_result = result["tool_result"]
-
-                    dashboard_data = dashboard_agent.build(result["tool_result"])
-
-                    if dashboard_data:
-                        st.session_state.dashboard = dashboard_data
-
-            st.session_state.messages.append({"role": "assistant", "content": result})
-
-            st.rerun()
-
-    # ==========================================
-    # ANALYTICS PANEL
-    # ==========================================
-
-    with analytics_col:
-
-        st.subheader("🤖 AI Analytics")
-
-        tool = st.session_state.last_tool_result
-
-        if tool:
-
-            st.metric("Execution Time", f"{tool.get('time', 0)} sec")
-
-            st.metric("Rows Returned", len(tool.get("rows", [])))
-
-            st.metric("Columns", len(tool.get("columns", [])))
-
-            st.divider()
-
-            st.markdown("### 📝 Generated SQL")
-
-            st.code(tool.get("sql", ""), language="sql")
-
-            st.divider()
-
-            st.markdown("### 📄 Summary")
-
-            st.info(tool.get("answer", "No summary available."))
-
-            st.divider()
-
-            st.markdown("### 👍 Feedback")
-
-            log_id = tool.get("log_id")
-
-            if log_id:
-
-                col1, col2 = st.columns(2)
-
-                with col1:
-
-                    if st.button("👍 Helpful", key=f"good_{log_id}"):
-
-                        learner.update_feedback(log_id, 1)
-
-                        st.success("Feedback saved!")
+                    with col1:
+                        st.metric("Intent", intent)
 
                 with col2:
+                    st.metric("Execution Time", f"{execution_time:.3f}s")
 
-                    if st.button("👎 Wrong", key=f"bad_{log_id}"):
+                # ------------------------------------------------
+                # SQL
+                # ------------------------------------------------
 
-                        learner.update_feedback(log_id, -1)
+                if isinstance(tool_result, dict) and tool_result.get("sql"):
 
-                        st.warning("Feedback saved!")
+                    st.markdown("### Generated SQL")
 
-        else:
+                    st.code(tool_result["sql"], language="sql")
 
-            st.info("Run a SQL query to see AI analytics.")
+        # 5️⃣ store assistant reply
+        st.session_state.chat_messages.append({"role": "assistant", "content": answer})
+
+    # ------------------------------
+    #  CLEAR CHAT button
+    # ------------------------------
+    if st.button("🗑️ Clear Chat", key="clear_chat"):
+        st.session_state.chat_messages = []
+        st.rerun()

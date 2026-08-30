@@ -1,0 +1,28 @@
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://10.44.3.234:8501
+  External URL: http://1.7.101.98:8501
+
+========== APP.PY LOADED ==========
+>>> NEW SIDEBAR LOADED
+[ASSISTANT] Page started
+[ASSISTANT] Creating fresh Database
+[ASSISTANT] Creating fresh Dashboard
+[ASSISTANT] Dashboard created
+[RESOURCE] Creating Agent
+[EMBEDDING] Device: cpu
+[EMBEDDING] Model loaded: all-MiniLM-L6-v2 on cpu
+[14:39:11] [RAG_AGENT] Ready
+[14:39:11] [AGENT] Ready
+[RESOURCE] Agent ready
+[RESOURCE] Creating Dashboard Agent
+[RESOURCE] Dashboard Agent ready
+[RESOURCE] Creating Learning Engine
+[RESOURCE] Learning Engine ready
+[ASSISTANT] Getting active table...
+[ASSISTANT] Active Table: tataunystore
+[ASSISTANT] Getting dashboard stats...
+[ASSISTANT] Dashboard stats loaded
+[ASSISTANT] Dashboard DB connection closed
