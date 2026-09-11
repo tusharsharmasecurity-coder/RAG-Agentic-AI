@@ -1,0 +1,21 @@
+# Use a lightweight version of Python 3.11
+FROM python:3.11-slim
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the requirements file and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Pre-download SentenceTransformer weights so offline runs don't crash
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+
+# Copy all your project files into the container
+COPY . .
+
+# Tell Docker this container uses port 8000
+EXPOSE 8000
+
+# The command to start the backend
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

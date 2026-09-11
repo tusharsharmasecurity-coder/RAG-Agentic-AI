@@ -5,322 +5,119 @@ from src.models.router import ModelRouter
 from src.planner_validator import PlannerValidator
 from src.logger import log
 
-
 router = ModelRouter()
 
 
 class Planner:
-
     def __init__(self):
         self.validator = PlannerValidator()
 
     # ============================================================
-    # LOCAL FALLBACK
+    # LOCAL FALLBACK (Only used if LLM fails)
     # ============================================================
-
     def local_fallback(self, question: str) -> str:
-
         q = question.lower().strip()
 
-        # -----------------------------
-        # CHAT
-        # -----------------------------
-
-        if re.fullmatch(
-            r"(hi|hello|hey|thanks|thank you|bye|goodbye)",
-            q,
-        ):
+        if re.fullmatch(r"(hi|hello|hey|thanks|thank you|bye|goodbye)", q):
             return "CHAT"
 
-        # -----------------------------
-        # DATAFRAME
-        # -----------------------------
-
-        dataframe_patterns = [
-            "sort this",
-            "filter this",
-            "top 10",
-            "plot this",
-            "average of this",
-            "show only",
-            "group this",
-        ]
-
+        dataframe_patterns = ["sort this", "filter this", "top 10", "plot this", "average of this", "show only", "group this"]
         if any(pattern in q for pattern in dataframe_patterns):
             return "DATAFRAME"
 
-        # -----------------------------
-        # RAG
-        # -----------------------------
-
-        rag_patterns = [
-            "sop",
-            "policy",
-            "documentation",
-            "process",
-            "manual",
-            "guideline",
-            "guidelines",
-            "procedure",
-            "explain closure process",
-        ]
-
-        if any(pattern in q for pattern in rag_patterns):
-            return "RAG"
-
-        # -----------------------------
-        # BOTH
-        # -----------------------------
-
-        sql_terms = [
-            "count",
-            "how many",
-            "total",
-            "sum",
-            "average",
-            "avg",
-            "max",
-            "min",
-            "shipment",
-            "shipments",
-            "awb",
-            "tracking",
-            "warehouse",
-            "database",
-        ]
+        sql_terms = ["count", "how many", "total", "sum", "average", "avg", "max", "min", "shipment", "shipments", "awb", "tracking", "warehouse", "database"]
+        rag_patterns = ["sop", "policy", "documentation", "process", "manual", "guideline", "guidelines", "procedure", "explain closure process"]
 
         has_sql = any(term in q for term in sql_terms)
         has_rag = any(term in q for term in rag_patterns)
 
         if has_sql and has_rag:
             return "BOTH"
-
-        # -----------------------------
-        # SQL
-        # -----------------------------
-
         if has_sql:
             return "SQL"
-
-        return "CHAT"
+        if has_rag:
+            return "RAG"
+        
+        # We must return None here, NOT "CHAT", so the hybrid planner knows it failed to guess.
+        return None 
 
     # ============================================================
     # NVIDIA PLANNER
     # ============================================================
-
     def _remote_plan(self, prompt: str):
-
         max_retries = 3
 
         for attempt in range(1, max_retries + 1):
-
             try:
-
                 response = router.planner().invoke(prompt)
-
                 return response.content
-
             except Exception as exc:
-
                 error_text = str(exc)
-
-                print(
-                    f"[PLANNER] Remote planner attempt "
-                    f"{attempt}/{max_retries} failed: {error_text}"
-                )
-
-                # Retry only service-overload / temporary failures
-                if "503" not in error_text and "Service temporarily overloaded" not in error_text:
-                    raise
-
+                print(f"[PLANNER] Remote planner attempt {attempt}/{max_retries} failed: {error_text}")
                 if attempt < max_retries:
-
                     delay = 1.5 * attempt
-
-                    print(
-                        f"[PLANNER] Retrying in {delay:.1f}s..."
-                    )
-
+                    print(f"[PLANNER] Retrying in {delay:.1f}s...")
                     time.sleep(delay)
-
         return None
 
     # ============================================================
     # MAIN PLAN
     # ============================================================
-
     def plan(self, question, context=""):
 
+        # 1. INTELLIGENT LLM ROUTING (Primary)
+        print("[HYBRID PLANNER] Sending to NVIDIA Planner...")
         prompt = f"""
-You are an Intent Classifier.
+You are an intelligent Intent Classifier for a Logistics API.
+Analyze the user's question and choose EXACTLY ONE of the following routing labels:
 
-Conversation:
+- RAG: The user is asking about operational rules, policies, SOPs, guidelines, requirements, SLAs, or factual information that would be found in a PDF manual or training document (e.g., "What are the rules for...", "How do I process...", "What is the requirement for...").
+- SQL: The user is asking for specific quantitative data, counts, or metrics from a live tracking database (e.g., "How many shipments...", "What is the status of AWB...").
+- BOTH: The question requires BOTH live database metrics AND checking a policy document.
+- DATAFRAME: The user is asking to sort, filter, or graph data that is already on the screen.
+- CHAT: The user is just saying hello, thank you, or having a casual conversation.
+
+Conversation History:
 {context}
 
 User Question:
 {question}
 
-Choose ONLY ONE of these labels.
-
-SQL
-- Counts
-- Sum
-- Average
-- Max
-- Min
-- Warehouse
-- Shipment
-- AWB
-- Tracking
-- Customer
-- Database
-
-RAG
-- SOP
-- Policy
-- Documentation
-- Process
-- Manual
-- Guidelines
-
-BOTH
-- Needs SQL and SOP together.
-
-DATAFRAME
-ONLY if the user refers to an EXISTING SQL RESULT.
-
-Examples:
-Sort this
-Filter this
-Top 10
-Plot this
-Average of this
-Show only delayed
-Group this result
-
-CHAT
-Greetings
-Hello
-Hi
-Thanks
-Bye
-General conversation
-
-VERY IMPORTANT
-
-Question:
-Show total AWB by warehouse
-
-Answer:
-SQL
-
-Question:
-Explain closure process
-
-Answer:
-RAG
-
-Question:
-Show total AWB by warehouse and explain closure process
-
-Answer:
-BOTH
-
-Question:
-Sort this result
-
-Answer:
-DATAFRAME
-
-Question:
-Hi
-
-Answer:
-CHAT
-
-Return ONLY ONE WORD.
-
-SQL
-RAG
-BOTH
-DATAFRAME
-CHAT
+Return ONLY ONE WORD (RAG, SQL, BOTH, DATAFRAME, or CHAT). No explanations.
 """
-
-        # ========================================================
-        # REMOTE PLANNER
-        # ========================================================
-
         text = self._remote_plan(prompt)
 
+        # 2. PARSE LLM RESPONSE
+        intent = None
         if text is not None:
-
             print("\n========== RAW NEMOTRON ==========")
             print(text)
-
             text = text.upper().strip()
-
-            print("\n========== PARSED ==========")
-            print(text)
 
             if "DATAFRAME" in text:
                 intent = "DATAFRAME"
-
             elif "BOTH" in text:
                 intent = "BOTH"
-
             elif "SQL" in text:
                 intent = "SQL"
-
             elif "RAG" in text:
                 intent = "RAG"
-
             elif "CHAT" in text:
                 intent = "CHAT"
 
-            else:
-                intent = self.local_fallback(question)
+        # 3. FALLBACK TO LOCAL KEYWORDS (Only if LLM failed or returned garbage)
+        if intent is None:
+            print("\n[PLANNER] Remote planner unavailable or invalid. Using local fallback.")
+            intent = self.local_fallback(question) or "CHAT" 
 
-        # ========================================================
-        # LOCAL FALLBACK
-        # ========================================================
-
-        else:
-
-            print(
-                "\n[PLANNER] Remote planner unavailable."
-            )
-
-            intent = self.local_fallback(question)
-
-            print(
-                f"[PLANNER] Local fallback intent = {intent}"
-            )
-
-        # ========================================================
-        # VALIDATION
-        # ========================================================
-
-        validation = self.validator.validate(
-            question,
-            intent,
-        )
-
+        # 4. VALIDATION
+        validation = self.validator.validate(question, intent)
         if validation["decision"] == "FAIL":
-
-            print(
-                f"[PLANNER] Validation failed: "
-                f"{validation.get('reason', 'Unknown reason')}"
-            )
-
-            intent = self.local_fallback(question)
+            print(f"[PLANNER] Validation failed: {validation.get('reason')}")
+            intent = self.local_fallback(question) or "CHAT"
 
         print("\n========== FINAL INTENT ==========")
         print(intent)
-
-        log(
-            "PLANNER",
-            f"Intent = {intent}",
-        )
+        log("PLANNER", f"Intent = {intent}")
 
         return intent

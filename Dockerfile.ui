@@ -1,0 +1,15 @@
+# Use a lightweight version of Python 3.11
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# Tell Docker this container uses port 8501
+EXPOSE 8501
+
+# The command to start the frontend
+CMD ["streamlit", "run", "app.py", "--server.address", "0.0.0.0"]

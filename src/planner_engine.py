@@ -18,11 +18,26 @@ class PlannerEngine:
         q = question.lower().strip()
 
         # -----------------------------
-        # CHAT
+        # WORKSPACE (GMAIL / SHEETS)
         # -----------------------------
+        workspace_patterns = [
+            "email",
+            "emails",
+            "gmail",
+            "inbox",
+            "unread",
+            "google sheet",
+            "google sheets",
+            "spreadsheet",
+        ]
+        if any(x in q for x in workspace_patterns):
+            return "WORKSPACE"
 
+        # -----------------------------
+        # CHAT (Exact match greetings only)
+        # -----------------------------
         if re.fullmatch(
-            r"(hi|hello|hey|thanks|thank you|bye|goodbye)",
+            r"(hi|hello|hey|thanks|thank you|bye|goodbye|good morning|good evening)",
             q,
         ):
             return "CHAT"
@@ -30,7 +45,6 @@ class PlannerEngine:
         # -----------------------------
         # DATAFRAME
         # -----------------------------
-
         dataframe_patterns = [
             "sort this",
             "filter this",
@@ -40,15 +54,14 @@ class PlannerEngine:
             "show only",
             "average of this",
         ]
-
         if any(x in q for x in dataframe_patterns):
             return "DATAFRAME"
 
         # -----------------------------
-        # RAG
+        # COMPREHENSIVE LOGISTICS RAG PATTERNS
         # -----------------------------
-
         rag_patterns = [
+            # Document Type Identifiers
             "sop",
             "policy",
             "documentation",
@@ -58,10 +71,76 @@ class PlannerEngine:
             "guidelines",
             "procedure",
             "process",
-            "explain",
+            "rule",
+            "rules",
+            "escalation",
+            "clause",
+            "terms",
+            "requirement",
+            "requirements",
+            # Returns & Deliveries (RVP, RTO, DTO, Doorstep)
+            "rvp",
+            "rto",
+            "dto",
+            "forward delivery",
+            "return leg",
+            "reverse",
+            "reverse pickup",
+            "doorstep",
+            "door step",
+            "seller doorstep",
+            "pickup",
+            "delivery",
+            "handover",
+            "non-qc",
+            "qc shipment",
+            # Proofs, Evidence & Footage
+            "pod",
+            "proof of delivery",
+            "unboxing",
+            "packing video",
+            "unpacking video",
+            "footage",
+            "timestamp",
+            "time stamp",
+            "image",
+            "images",
+            "picture",
+            "photo",
+            "evidence",
+            "remark",
+            "remarks",
+            # Claims & Incidents
+            "dispute",
+            "damage",
+            "damaged",
+            "tampered",
+            "partial delivery",
+            "empty parcel",
+            "wrong product",
+            "shortage",
+            "shorter image",
+            "claim",
+            "investigate",
+            "tat",
+            "timeline",
+            "re-validation",
+            # Stakeholders & Operations
+            "fe",
+            "field executive",
+            "kam",
+            "key account manager",
+            "savex",
+            "delhivery",
+            "shiprocket",
+            "warehouse",
+            "client part",
         ]
 
-        # Strong SQL indicators
+        # -----------------------------
+        # SQL PATTERNS
+        # -----------------------------
+        # Replace broad keywords with specific analytical phrases:
         sql_patterns = [
             "how many",
             "count",
@@ -73,118 +152,59 @@ class PlannerEngine:
             "minimum",
             "max",
             "min",
-            "shipment",
-            "shipments",
-            "awb",
-            "tracking",
-            "warehouse",
             "database",
-            "status",
+            "sql",
+            "count of shipments",
+            "number of shipments",
+            "list shipments",
+            "show shipments",
         ]
 
         has_rag = any(x in q for x in rag_patterns)
         has_sql = any(x in q for x in sql_patterns)
 
         # -----------------------------
-        # BOTH
+        # INTENT EVALUATION
         # -----------------------------
-
         if has_rag and has_sql:
             return "BOTH"
-
-        # -----------------------------
-        # SQL
-        # -----------------------------
 
         if has_sql:
             return "SQL"
 
-        # -----------------------------
-        # RAG
-        # -----------------------------
-
         if has_rag:
             return "RAG"
 
-        # Unknown → remote planner
+        # Unknown → Remote Planner (NVIDIA)
         return None
 
     # ============================================================
-    # PLAN
+    # PLAN CREATION
     # ============================================================
 
     def create_plan(self, question):
-
-        # --------------------------------------------------------
-        # 1. FAST LOCAL ROUTING
-        # --------------------------------------------------------
-
         local_intent = self.local_intent(question)
 
         if local_intent:
-
-            print(
-                f"[HYBRID PLANNER] Local intent = "
-                f"{local_intent}"
-            )
-
+            print(f"[HYBRID PLANNER] Local intent = {local_intent}")
             intent = local_intent
-
-        # --------------------------------------------------------
-        # 2. REMOTE PLANNER FOR AMBIGUOUS QUESTIONS
-        # --------------------------------------------------------
-
         else:
-
-            print(
-                "[HYBRID PLANNER] Ambiguous question → "
-                "NVIDIA Planner"
-            )
-
+            print("[HYBRID PLANNER] Ambiguous question → NVIDIA Planner")
             context = self.memory.get_context()
-
-            intent = self.planner.plan(
-                question,
-                context,
-            )
-
-        # --------------------------------------------------------
-        # 3. MEMORY
-        # --------------------------------------------------------
+            intent = self.planner.plan(question, context)
 
         self.memory.add_user(question)
 
-        # --------------------------------------------------------
-        # 4. TOOL PLAN
-        # --------------------------------------------------------
-
+        if intent == "WORKSPACE":
+            return {"intent": "WORKSPACE", "tools": ["workspace"]}
         if intent == "SQL":
-
-            return {
-                "intent": "SQL",
-                "tools": ["sql"],
-            }
-
+            return {"intent": "SQL", "tools": ["sql"]}
         if intent == "RAG":
-
-            return {
-                "intent": "RAG",
-                "tools": ["rag"],
-            }
-
+            return {"intent": "RAG", "tools": ["rag"]}
         if intent == "BOTH":
-
-            return {
-                "intent": "BOTH",
-                "tools": ["sql", "rag"],
-            }
-
+            return {"intent": "BOTH", "tools": ["sql", "rag"]}
         if intent == "DATAFRAME":
-
-            return {
-                "intent": "DATAFRAME",
-                "tools": ["dataframe"],
-            }
+            return {"intent": "DATAFRAME", "tools": ["dataframe"]}
 
         return {
             "intent": "CHAT",

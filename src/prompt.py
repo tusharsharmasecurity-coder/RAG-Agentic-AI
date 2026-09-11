@@ -259,3 +259,30 @@ FINAL INSTRUCTION
 
 Return ONLY the SQL query.
 """
+# ============================================================
+# CHART / VISUALIZATION PROMPT
+# ============================================================
+
+CHART_SYSTEM_PROMPT = """
+You are a Data Visualization Assistant.
+
+Dataset Columns:
+{columns}
+
+Analyze the columns and select the single best visualization type.
+
+Choose ONE of the following chart types:
+- "bar" : for comparing discrete categories
+- "line" : for time-series, dates, or continuous trends
+- "pie" : for proportional breakdown (5 or fewer categories)
+- "kpi" : for single-value summaries
+- "table" : for detailed multi-column records
+
+Return ONLY a valid JSON object. Do not include markdown formatting or extra text.
+
+Example format:
+{{
+    "chart": "bar",
+    "reason": "Comparing metrics across categories"
+}}
+"""

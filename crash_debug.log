@@ -1,0 +1,41 @@
+FATAL CRASH [RerunException]: RerunData(page_script_hash='3f41e546893dc64b71aaacad12cad815', context_info=timezone: "Asia/Calcutta"
+timezone_offset: -330
+locale: "en-US"
+url: "http://localhost:8501/"
+is_embedded: false
+color_scheme: "light"
+)
+
+Traceback (most recent call last):
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\app.py", line 75, in <module>
+    assistant_page()
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\ui\assistant_page.py", line 217, in assistant_page
+    st.rerun()
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\.venv\Lib\site-packages\streamlit\runtime\metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\.venv\Lib\site-packages\streamlit\commands\execution_control.py", line 154, in rerun
+    st.empty()
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\.venv\Lib\site-packages\streamlit\runtime\metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\.venv\Lib\site-packages\streamlit\elements\empty.py", line 100, in empty
+    return self.dg._enqueue("empty", empty_proto)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\.venv\Lib\site-packages\streamlit\delta_generator.py", line 503, in _enqueue
+    _enqueue_message(msg)
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\.venv\Lib\site-packages\streamlit\runtime\scriptrunner_utils\script_run_context.py", line 297, in enqueue_message
+    ctx.enqueue(msg)
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\.venv\Lib\site-packages\streamlit\runtime\scriptrunner_utils\script_run_context.py", line 205, in enqueue
+    self._enqueue(msg_to_send)
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\.venv\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 410, in _enqueue_forward_msg
+    self._maybe_handle_execution_control_request()
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\.venv\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 446, in _maybe_handle_execution_control_request
+    raise RerunException(request.rerun_data)
+streamlit.runtime.scriptrunner_utils.exceptions.RerunException: RerunData(page_script_hash='3f41e546893dc64b71aaacad12cad815', context_info=timezone: "Asia/Calcutta"
+timezone_offset: -330
+locale: "en-US"
+url: "http://localhost:8501/"
+is_embedded: false
+color_scheme: "light"
+)

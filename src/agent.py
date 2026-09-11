@@ -36,56 +36,58 @@ class DelhiveryAgent:
     # MAIN AGENT ENTRY POINT
     # ============================================================
 
-    def ask(self, question):
+    # ============================================================
+    # MAIN AGENT ENTRY POINT
+    # ============================================================
 
+    def ask(self, question, thread_id="default_user"):
         total_start = time.time()
 
         # ========================================================
         # SAVE USER MESSAGE
         # ========================================================
-
-        self.planner.memory.add_user(question)
+        try:
+            # Try to save to specific thread memory
+            self.planner.memory.add_user(question, thread_id=thread_id)
+        except TypeError:
+            # Fallback if memory class doesn't accept thread_id yet
+            self.planner.memory.add_user(question)
 
         # ========================================================
         # PLANNING
         # ========================================================
-
         planner_start = time.time()
-
         plan = self.planner.create_plan(question)
-
         planner_time = time.time() - planner_start
 
         print(f"Planner: {planner_time:.2f}s")
-
         intent = plan.get("intent", "CHAT")
-
         log("PLANNER", f"Intent = {intent}")
 
         print("\n========== AGENT PLAN ==========")
-
         print(f"Intent : {intent}")
-
         print(f"Tools  : {plan.get('tools', [])}")
 
         # ========================================================
         # MULTI-AGENT ORCHESTRATION
         # ========================================================
-
         orchestration_start = time.time()
-
         try:
-            result = self.orchestrator.execute(
-                plan=plan,
-                question=question,
-                normalizer=self.normalizer,
-            )
+            # Pass thread_id into the orchestrator/LangGraph for state management
+            try:
+                result = self.orchestrator.execute(
+                    plan=plan,
+                    question=question,
+                    normalizer=self.normalizer,
+                    thread_id=thread_id,
+                )
+            except TypeError:
+                # Fallback if orchestrator execute doesn't accept thread_id yet
+                result = self.orchestrator.execute(
+                    plan=plan, question=question, normalizer=self.normalizer
+                )
         except Exception as exc:
-            log(
-                "AGENT",
-                f"Orchestrator error: {exc}",
-            )
-
+            log("AGENT", f"Orchestrator error: {exc}")
             return {
                 "answer": "The agent encountered an execution error.",
                 "tool_result": {
@@ -93,10 +95,7 @@ class DelhiveryAgent:
                     "message": str(exc),
                 },
                 "intent": intent,
-                "execution_time": round(
-                    time.time() - total_start,
-                    4,
-                ),
+                "execution_time": round(time.time() - total_start, 4),
             }
 
         orchestration_time = time.time() - orchestration_start
@@ -113,67 +112,49 @@ class DelhiveryAgent:
         # ========================================================
         # RESULT
         # ========================================================
-
         answer = result.get("answer", "No response generated.")
-
         tool_result = result.get("tool_result")
-
         result_intent = result.get("intent", intent)
 
         # ========================================================
         # SAVE AI RESPONSE
         # ========================================================
-
         try:
-
-            self.planner.memory.add_ai(answer)
-
+            try:
+                self.planner.memory.add_ai(answer, thread_id=thread_id)
+            except TypeError:
+                self.planner.memory.add_ai(answer)
         except Exception as exc:
-
+            import traceback
+            traceback.print_exc()
             log("AGENT", f"Chat memory save failed: {exc}")
 
         # ========================================================
         # QUALITY CHECK
         # ========================================================
-
         try:
-
             quality_result = self.quality.check(question, answer)
-
         except Exception:
-
-            # Some existing QualityChecker
-            # implementations may have a different API.
             quality_result = None
 
         # ========================================================
         # TOTAL TIMING
         # ========================================================
-
         total_time = time.time() - total_start
-
         print("\n========== AGENT RESULT ==========")
-
         print(f"Intent        : {result_intent}")
-
         print(f"Planner time  : {planner_time:.3f}s")
-
         print(f"Agent time    : {orchestration_time:.3f}s")
-
         print(f"Total time    : {total_time:.3f}s")
 
         # ========================================================
         # FINAL RESPONSE
         # ========================================================
-
         response = {
             "answer": answer,
             "tool_result": tool_result,
             "intent": result_intent,
-            "execution_time": round(
-                total_time,
-                4,
-            ),
+            "execution_time": round(total_time, 4),
         }
 
         if quality_result is not None:

@@ -1,14 +1,51 @@
+# Core Agent & LLM Frameworks
 langchain
-langchain-core
 langchain-community
-pypdf
-pymupdf
-sentence-transformers
+langchain-ollama
+langgraph
+redis
+
+# Database Drivers (SQL Tool)
+pymysql
+cryptography
+sqlalchemy
+psycopg2-binary
+
+# Data Analysis & DataFrames
+pandas
+openpyxl
+numpy
+
+# Workspace Tools (Gmail / Google Sheets)
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+
+# Vector Store & Utility
 faiss-cpu
-chromadb
-langchain-groq
+sentence-transformers
+requests
+pydantic
+fastapi
+uvicorn
+mysql-connector-python
+langchain-nvidia-ai-endpoints
+sqlglot
+mysql-connector-python
+langchain-nvidia-ai-endpoints
+langchain-ollama
+fastapi
+uvicorn
+fastapi
+uvicorn
+python-multipart
+sqlglot
+rapidfuzz
+mysql-connector-python
+langchain-nvidia-ai-endpoints
+langchain-ollama
+langgraph
+faiss-cpu
+sentence-transformers
+pydantic
 python-dotenv
-sqlglot>=27.0
-rapidfuzz>=3.14
-redis>=6.0
-networkx>=3.6.1

@@ -1,11 +1,13 @@
-assistant_page() failed.
+Failed to import UI modules.
 Traceback (most recent call last):
-  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\app.py", line 53, in <module>
-    assistant_page()
-  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\ui\assistant_page.py", line 108, in assistant_page
-    answer = ask_llm(
-             ^^^^^^^^
-  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\src\llm.py", line 22, in ask_llm
-    response = llm(messages)
-               ^^^^^^^^^^^^^
-TypeError: 'ChatNVIDIA' object is not callable
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\app.py", line 7, in <module>
+    from ui.sidebar import show_sidebar
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\ui\sidebar.py", line 2, in <module>
+    from ui.resources import get_agent
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\ui\resources.py", line 5, in <module>
+    from src.analytics.dashboard_agent import DashboardAgent
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\src\analytics\dashboard_agent.py", line 2, in <module>
+    from src.analytics.visualization_agent import VisualizationAgent
+  File "C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\src\analytics\visualization_agent.py", line 3, in <module>
+    from src.prompt import CHART_SYSTEM_PROMPT
+ImportError: cannot import name 'CHART_SYSTEM_PROMPT' from 'src.prompt' (C:\Users\tusharsharma.securit\Documents\GitHub\RAG-Agentic-AI\src\prompt.py)

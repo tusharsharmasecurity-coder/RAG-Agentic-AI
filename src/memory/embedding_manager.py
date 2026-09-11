@@ -38,15 +38,10 @@ class EmbeddingManager:
 
         # Load directly onto the selected device.
         # This avoids CPU -> CUDA .to() after model construction.
-        self.model = SentenceTransformer(
-            model_name,
-            device=self.device,
-        )
+        # Change device from "cuda" to "cpu" to save GPU VRAM
+        self.model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
 
-        print(
-            f"[EMBEDDING] Model loaded: {model_name} "
-            f"on {self.device}"
-        )
+        print(f"[EMBEDDING] Model loaded: {model_name} " f"on {self.device}")
 
     def embed(self, text):
 

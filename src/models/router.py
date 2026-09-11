@@ -1,5 +1,7 @@
 from src.models.ollama_model import llm
 from src.models.nvidia_model import nvidia_llm
+import os
+from langchain_ollama import ChatOllama
 
 
 class ModelRouter:
@@ -15,48 +17,51 @@ class ModelRouter:
     # -----------------------------
     # Planner
     # -----------------------------
-
     def planner(self):
-        return self._get("planner", nvidia_llm)
+        return self._get("planner", lambda: nvidia_llm())
 
     # -----------------------------
-    # SQL
+    # SQL (Use NVIDIA or deepseek-coder for clean SQL syntax)
     # -----------------------------
-
     def sql(self):
-        return self._get("sql", lambda: llm("deepseek-coder:6.7b"))
+        return self._get("sql", lambda: nvidia_llm())
 
     # -----------------------------
-    # RAG
+    # RAG (Fast local 3B model ~14s)
     # -----------------------------
 
     def rag(self):
-        return self._get("rag", lambda: llm("llama3:8b"))
+        # Force 127.0.0.1 fallback for native Windows execution
+        base_url = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
+        if not base_url:
+            base_url = "http://host.docker.internal:11434"
+        if "host.docker.internal" in base_url and not os.path.exists("/.dockerenv"):
+            base_url = "http://127.0.0.1:11434"
+        model_name = os.getenv("LLM_MODEL", "qwen3:8b")
+        return ChatOllama(
+            base_url=base_url,
+            model=model_name,
+            temperature=0,
+            timeout=30.0,  # Prevent infinite network hanging
+        )
 
     # -----------------------------
-    # Dashboard
+    # Dashboard (Fast local 3B model)
     # -----------------------------
-
     def dashboard(self):
-        return self._get("dashboard", lambda: llm("qwen3:8b"))
+        return self._get("dashboard", lambda: llm)
 
     # -----------------------------
-    # Chat
+    # Chat (Fast local 3B model ~3.6s)
     # -----------------------------
-
     def chat(self):
-        return self._get("chat", lambda: llm("qwen3:8b"))
+        return self._get("chat", lambda: llm)
 
     # -----------------------------
-    # Future Supervisor
+    # Supervisor / Evaluator
     # -----------------------------
-
     def supervisor(self):
-        return self._get("supervisor", nvidia_llm)
-
-    # -----------------------------
-    # Future Evaluator
-    # -----------------------------
+        return self._get("supervisor", lambda: nvidia_llm())
 
     def evaluator(self):
-        return self._get("evaluator", nvidia_llm)
+        return self._get("evaluator", lambda: nvidia_llm())
